@@ -1,0 +1,49 @@
+@import url("https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css");
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e6f0fa;
+}
+
+body {
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.main-logo img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 2rem auto;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  width: calc(100% - 1rem);
+  margin-bottom: 1rem;
+}
+
+.login-form button {
+  width: calc(100% - 1rem);
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.forgot-password {
+  text-align: center;
+  display: block;
+  margin-top: 1rem;
+}
