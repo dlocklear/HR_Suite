@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="/static/css/login.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - HR Suite</title>
+    <link rel="stylesheet" href="/static/css/login.css" />
   </head>
   <body>
     <main class="container">
@@ -15,10 +15,10 @@
           style="max-width: 100%; height: auto"
         />
       </div>
-      <form class="login-form">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required />
-        <label for="password">Password</label>
+      <form action="/login" method="post" class="login-form">
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" required />
+        <label for="password">Password:</label>
         <input type="password" id="password" name="password" required />
         <button type="submit">Log In</button>
         <a href="#" class="forgot-password">Forgot Password?</a>

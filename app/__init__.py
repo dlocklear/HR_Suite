@@ -7,12 +7,19 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+    app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
 
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_ANON_KEY")
-    supabase: Client = create_client(url, key)
 
-    from app.routes import init_routes
-    init_routes(app)
+    if not url or not key:
+        raise EnvironmentError(
+            "Missing Supabase configuration in environment variables.")
+
+    # Initialize Supabase client and attach to the Flask app
+    app.supabase = create_client(url, key)
+
+    from app import routes
+    routes.init_routes(app)
 
     return app
