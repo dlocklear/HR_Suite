@@ -37,4 +37,12 @@ def init_routes(app):
         if 'user' not in session:
             flash('You need to be logged in to view the dashboard.')
             return redirect(url_for('login'))
-        return 'Welcome to the Dashboard!'
+        return render_template('dashboard.html')
+
+    @app.route('/logout')
+    def logout():
+        # Remove user from session
+        session.pop('user', None)
+        # Redirect to login page with a success message
+        flash("You have successfully logged out.")
+        return redirect(url_for('login'))

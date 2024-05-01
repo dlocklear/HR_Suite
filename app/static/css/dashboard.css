@@ -1,0 +1,63 @@
+body {
+  background-color: #e3e3e3; /* Lighter gray for overall background */
+  font-family: Arial, sans-serif; /* Ensuring a consistent font is used */
+}
+
+.container {
+  background: #ffffff; /* White background for the container */
+  padding: 2rem 4rem; /* Increased padding for better spacing */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); /* Softer shadow */
+  border-radius: 8px; /* Rounded corners for the container */
+}
+
+.navigation {
+  text-align: center; /* Centering navigation items */
+  margin-bottom: 2rem; /* Space between navigation and content */
+}
+
+.navigation ul {
+  list-style: none;
+  padding: 0;
+  display: inline-block; /* Aligning menu items inline */
+}
+
+.navigation ul li {
+  display: inline-block;
+  margin: 0 20px;
+  color: #333;
+  font-size: 18px; /* Larger font size for readability */
+  position: relative;
+}
+
+.navigation ul li a {
+  color: #333;
+  text-decoration: none;
+  padding: 10px; /* Padding for clickable area */
+  transition: color 0.3s; /* Smooth transition for hover effects */
+}
+
+.navigation ul li a:hover,
+.navigation ul li a:focus {
+  color: #555; /* Subtle change for hover and focus */
+}
+
+.tile {
+  background: #ffffff; /* White background for tiles */
+  border: 1px solid #dddddd; /* Light grey border for tiles */
+  border-radius: 8px; /* Rounded corners for the tiles */
+  padding: 20px; /* Increased padding inside tiles */
+  margin-bottom: 20px; /* Space between tiles */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  transition: box-shadow 0.3s; /* Smooth shadow transition on hover */
+}
+
+.tile:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
+}
+
+.main-logo img {
+  display: block;
+  max-width: 150px; /* Logo size adjusted */
+  height: auto;
+  margin: 0 auto 20px; /* Centering logo and adding space below */
+}
