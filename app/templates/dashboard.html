@@ -7,13 +7,13 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
     />
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="static/css/dashboard.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
     <title>Dashboard</title>
   </head>
   <body>
     <div class="main-logo">
-      <img src="static/img/LuxiumLogo.png" alt="Company Logo" />
+      <img src="/static/img/LuxiumLogo.png" alt="Company Logo" />
     </div>
     <nav class="navigation">
       <ul>
@@ -33,12 +33,38 @@
     <main class="container">
       <div class="grid">
         <section>
-          <div class="tile">Tile 1</div>
-          <div class="tile">Tile 2</div>
-          <div class="tile">Tile 3</div>
-          <div class="tile">Tile 4</div>
-          <div class="tile">Tile 5</div>
-          <div class="tile">Tile 6</div>
+          <!-- Employee Tiles -->
+          {% if 'user' in session and session['user']['role'] == 'Employee' %}
+          <div class="tile">Employee Tile 1</div>
+          <div class="tile">Employee Tile 2</div>
+          {% endif %}
+
+          <!-- Manager Tiles -->
+          {% if 'user' in session and session['user']['role'] == 'Manager' %}
+          <div class="tile">Manager Tile 1</div>
+          <div class="tile">Manager Tile 2</div>
+          <div class="tile">Manager Tile 3</div>
+          <div class="tile">Manager Tile 4</div>
+          {% endif %}
+
+          <!-- admin Tiles-->
+          {% if 'user' in session and session['user']['role'] == 'Admin' %}
+          <div class="tile">Manager Tile 1</div>
+          <div class="tile">Manager Tile 2</div>
+          <div class="tile">Manager Tile 3</div>
+          <div class="tile">Manager Tile 4</div>
+          <div class="tile">Manager Tile 5</div>
+          {% endif %}
+
+          <!-- Super_user Tiles-->
+          {% if 'user' in session and session['user']['role'] == 'SuperUser' %}
+          <div class="tile">Manager Tile 1</div>
+          <div class="tile">Manager Tile 2</div>
+          <div class="tile">Manager Tile 3</div>
+          <div class="tile">Manager Tile 4</div>
+          <div class="tile">Manager Tile 5</div>
+          <div class="tile">Manager Tile 6</div>
+          {% endif %}
         </section>
       </div>
     </main>

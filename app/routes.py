@@ -19,11 +19,14 @@ def init_routes(app):
                 {"email": email, "password": password})
 
             if response.user:
+                user_data = app.supabase.table('users').select(
+                    'role').eq('auth_user_id', response.user.id).execute()
                 # Store user details in session to keep them logged in
                 session['user'] = {
                     'id': response.user.id,
-                    'email': response.user.email
-                }  # adjust as nexessary for your application
+                    'email': response.user.email,
+                    'role': user_data.data[0]['role']  # Store role in session
+                }
                 return redirect(url_for('dashboard'))
             else:
                 # If no user is returned, handle errors
