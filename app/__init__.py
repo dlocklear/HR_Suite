@@ -1,3 +1,5 @@
+from sendgrid.helpers.mail import Mail
+from sendgrid import SendGridAPIClient
 import os
 from supabase import create_client, Client
 from flask import Flask
@@ -18,6 +20,11 @@ def create_app():
 
     # Initialize Supabase client and attach to the Flask app
     app.supabase = create_client(url, key)
+
+    # SENDGRID CONFIG
+    app.config['SENDGRID_API_KEY'] = os.getenv("SENDGRID_API_KEY")
+    app.config['FROM_EMAIL'] = 'imvaader@gmail.com'
+    app.sendgrid_client = SendGridAPIClient(app.config['SENDGRID_API_KEY'])
 
     from app import routes
     routes.init_routes(app)
