@@ -3,42 +3,89 @@ body {
   font-family: Arial, sans-serif; /* Ensuring a consistent font is used */
 }
 
-.container {
-  background: #ffffff; /* White background for the container */
-  padding: 2rem 4rem; /* Increased padding for better spacing */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); /* Softer shadow */
-  border-radius: 8px; /* Rounded corners for the container */
+.banner {
+  background-color: #213f86; /* Dark blue background */
+  color: white;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.banner .logo {
+  display: flex;
+  align-items: center;
+}
+
+.banner .logo img {
+  height: 50px;
+}
+
+.top-right-links {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.top-right-links a {
+  color: white;
+  text-decoration: none;
+  padding: 10px;
+}
+
+.top-right-links .logout-btn {
+  background-color: #007bff; /* Blue background for logout button */
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.top-right-links a:hover,
+.top-right-links a:focus {
+  text-decoration: underline;
 }
 
 .navigation {
-  text-align: center; /* Centering navigation items */
-  margin-bottom: 2rem; /* Space between navigation and content */
+  background-color: #ffffff; /* White background for navigation */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1px 0;
 }
 
 .navigation ul {
   list-style: none;
   padding: 0;
-  display: inline-block; /* Aligning menu items inline */
+  margin: 0;
+  display: flex; /* Use flexbox for better alignment */
+  justify-content: center; /* Center the items */
 }
 
 .navigation ul li {
-  display: inline-block;
-  margin: 0 20px;
-  color: #333;
-  font-size: 18px; /* Larger font size for readability */
-  position: relative;
+  margin: 0 35px;
 }
 
 .navigation ul li a {
-  color: #333;
+  color: #1f2a44;
   text-decoration: none;
-  padding: 10px; /* Padding for clickable area */
-  transition: color 0.3s; /* Smooth transition for hover effects */
+  padding: 10px;
+  transition: color 0.3s;
 }
 
 .navigation ul li a:hover,
 .navigation ul li a:focus {
-  color: #555; /* Subtle change for hover and focus */
+  color: #ff6600; /* Subtle change for hover and focus */
+}
+
+.container {
+  background: #ffffff; /* White background for the container */
+  padding: 2rem 4rem; /* Increased padding for better spacing */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); /* Softer shadow */
+  border-radius: 8px; /* Rounded corners for the container */
+  margin-top: 20px;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .tile {
@@ -46,7 +93,8 @@ body {
   border: 1px solid #dddddd; /* Light grey border for tiles */
   border-radius: 8px; /* Rounded corners for the tiles */
   padding: 20px; /* Increased padding inside tiles */
-  margin-bottom: 20px; /* Space between tiles */
+  flex: 1;
+  min-width: 300px; /* Minimum width for responsiveness */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
   transition: box-shadow 0.3s; /* Smooth shadow transition on hover */
 }
@@ -55,9 +103,25 @@ body {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
 }
 
-.main-logo img {
-  display: block;
-  max-width: 150px; /* Logo size adjusted */
-  height: auto;
-  margin: 0 auto 20px; /* Centering logo and adding space below */
+.icon-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.icon-grid li {
+  flex: 1 0 30%;
+  list-style: none;
+}
+
+.chart-placeholder {
+  width: 100%;
+  height: 100px;
+  background: #ccc;
+  margin: 10px 0;
+}
+
+footer {
+  text-align: center;
+  margin-top: 2rem;
 }
