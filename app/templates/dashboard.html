@@ -23,52 +23,109 @@
   <nav class="navigation">
     <ul>
       <li><a href="#">Home</a></li>
-      <li><a href="#">Resources</a></li>
-      <li><a href="#">Myself</a></li>
-      <li><a href="#">People</a></li>
-      <li><a href="#">MyTeam</a></li>
-      <li><a href="#">Process</a></li>
-      <li><a href="#">Reports & Analytics</a></li>
-      <li><a href="#">Setup</a></li>
+      <li>
+        <a href="#">Resources</a>
+        <ul class="dropdown">
+          <li><a href="#">Resource 1</a></li>
+          <li><a href="#">Resource 2</a></li>
+          <li><a href="#">Resource 3</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">Myself</a>
+        <ul class="dropdown">
+          <li><a href="#">Profile</a></li>
+          <li><a href="#">Settings</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">People</a>
+        <ul class="dropdown">
+          <li><a href="#">Personal Information</a></li>
+          <li><a href="#">Employment</a></li>
+          <li><a href="#">Time Off</a></li>
+          <li><a href="#">Pay</a></li>
+          <li><a href="#">Benefits</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">MyTeam</a>
+        <ul class="dropdown">
+          <li><a href="#">Team 1</a></li>
+          <li><a href="#">Team 2</a></li>
+          <li><a href="#">Team 3</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">Process</a>
+        <ul class="dropdown">
+          <li><a href="#">Process 1</a></li>
+          <li><a href="#">Process 2</a></li>
+          <li><a href="#">Process 3</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">Reports & Analytics</a>
+        <ul class="dropdown">
+          <li><a href="#">Report 1</a></li>
+          <li><a href="#">Report 2</a></li>
+          <li><a href="#">Report 3</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">Setup</a>
+        <ul class="dropdown">
+          <li><a href="#">Setup 1</a></li>
+          <li><a href="#">Setup 2</a></li>
+          <li><a href="#">Setup 3</a></li>
+        </ul>
+      </li>
     </ul>
   </nav>
   
-  <section class="giant-picture">
-    <img src="/static/img/Team 1.png" alt="Giant Picture" />
+  <section class="carousel">
+    <div class="carousel-images">
+      <img src="/static/img/Team 1.png" alt="Team 1">
+      <img src="/static/img/Workable_1.png" alt="Team 2">
+      <img src="/static/img/LuxiumLogo.png" alt="Team 3">
+    </div>
   </section>
+
+  <div class="hr-banner">
+    <div class="container-fluid">
+      <a href="#" class="left-link">Meet HR Team</a>
+      <a href="mailto:LS.US.Luxium.HR@luxiumsolutions.com" class="right-link">Contact HR</a>
+    </div>
+  </div>
 
   <main class="container">
     <div class="grid">
-      <section>
-      </section>
+      <div class="tile">
+        <a href="https://luxium-solutions-llc.workable.com/referrals" target="_blank">
+          Refer A Candidate
+          <img src="/static/img/Workable_Ref_QR Code.png" alt="Workable Logo"/>
+        </a>
+      </div>
+      <div class="tile">
+        <a href="form-page.html" target="_blank">
+          Recognize an Employee
+          <img src="/static/img/Recognition_Logo.png" alt="Recognition Logo"/>
+        </a>
+      </div>
+      <div class="tile">
+        <a href="https://online.adp.com/signin/v1/?APPID=WFNPortal&productId=80e309c3-7085-bae1-e053-3505430b5495&returnURL=https://workforcenow.adp.com/&callingAppId=WFN&TARGET=-SM-https://workforcenow.adp.com/theme/index.html" target="_blank">
+          ADP Login
+          <img src="/static/img/ADP_LOGO.jpg" alt="ADP Logo"/>
+        </a>
+      </div>
+      <div class="tile">
+        <a href="#" target="_blank">
+          Discounts
+          <img src="/static/img/Discounts_Logo.png" alt="Discounts Logo"/>
+        </a>
+      </div>
     </div>
   </main>
-</body>
-</html>
-
-<main class="container">
-  <div class="grid">
-    <section>
-    </section>
-  </div>
-</main>
-</body>
-</html>
-
-<main class="container">
-  <div class="grid">
-    <section>
-    </section>
-  </div>
-</main>
-</body>
-</html>
-
-<main class="container">
-  <div class="grid">
-    <section>
-    </section>
-  </div>
-</main>
+  <script src="/static/js/carousel.js"></script>
 </body>
 </html>

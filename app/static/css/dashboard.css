@@ -1,20 +1,24 @@
 body {
   background-color: #e3e3e3; /* Lighter gray for overall background */
   font-family: Arial, sans-serif; /* Ensuring a consistent font is used */
+  margin: 0; /* Remove default body margin */
+}
+
+.banner, .navigation, .hr-banner {
+  width: 100%;
+  max-width: 1200px; /* Max width to center the content */
+  margin: 0 auto; /* Center the banner, navigation, and HR banner */
+  padding: 10px; /* Add some padding */
+  box-sizing: border-box; /* Ensure padding is included in the element's total width and height */
 }
 
 .banner {
   background-color: #213f86; /* Dark blue background */
   color: white;
-  padding: 10px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.banner .logo {
-  display: flex;
-  align-items: center;
+  border: 2px solid black; /* Bold black border */
 }
 
 .banner .logo img {
@@ -47,7 +51,7 @@ body {
 .navigation {
   background-color: #ffffff; /* White background for navigation */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 1px 0;
+  border: 2px solid black; /* Bold black border */
 }
 
 .navigation ul {
@@ -56,10 +60,13 @@ body {
   margin: 0;
   display: flex; /* Use flexbox for better alignment */
   justify-content: center; /* Center the items */
+  flex-wrap: wrap; /* Wrap items on smaller screens */
+  position: relative;
 }
 
 .navigation ul li {
-  margin: 0 35px;
+  margin: 0 15px; /* Adjust margin for better spacing */
+  position: relative;
 }
 
 .navigation ul li a {
@@ -74,45 +81,124 @@ body {
   color: #ff6600; /* Subtle change for hover and focus */
 }
 
-.giant-picture {
-  display: flex;
-  justify-content: center; /* Center the image */
-  padding: 0px 0; /* Optional: Add some padding */
+.navigation ul li .dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  z-index: 1000;
 }
 
-.giant-picture img {
-  width: 200%;
-  max-width: 1500px; /* Set a maximum width */
-  height: 200%;
-  max-height: 350px;
+.navigation ul li:hover > .dropdown,
+.navigation ul li:focus-within > .dropdown {
+  display: block;
+}
+
+.navigation ul li .dropdown li {
+  margin: 0;
+}
+
+.navigation ul li .dropdown li a {
+  padding: 10px;
+  display: block;
+  width: 200px;
+}
+
+.navigation ul li .dropdown li a:hover,
+.navigation ul li .dropdown li a:focus {
+  background-color: #f8f9fa;
+  color: #ff6600;
+}
+
+.carousel {
+  width: 100%;
+  max-width: 1200px; /* Max width to center the content */
+  margin: 0 auto; /* Center the carousel */
+  position: relative; /* Positioning context for navigation */
+}
+
+.carousel-images {
+  display: flex;
+  overflow: hidden;
+}
+
+.carousel-images img {
+  width: 100%;
+  height: auto;
+  max-height: 350px; /* Set a maximum height */
+}
+
+.carousel-images img:not(:first-child) {
+  display: none; /* Hide all images except the first one */
+}
+
+.hr-banner {
+  background-color: #f8f9fa; /* Light background for HR banner */
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  border: 2px solid black; /* Bold black border */
+}
+
+.hr-banner .container-fluid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hr-banner .left-link,
+.hr-banner .right-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.hr-banner .left-link:hover,
+.hr-banner .right-link:hover {
+  text-decoration: underline;
 }
 
 .container {
   background: #ffffff; /* White background for the container */
-  padding: 2rem 4rem; /* Increased padding for better spacing */
+  padding: 2rem; /* Adjusted padding for better spacing */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); /* Softer shadow */
-  border-radius: 8px; /* Rounded corners for the container */
-  margin-top: 20px;
-  max-width: 400px; /* Set a maximum width */
-  margin-left: auto;
-  margin-right: auto; /* Center the container */
+  margin: 0px auto; /* Center the container and add top margin */
+  max-width: 1200px; /* Set a maximum width */
+  border: 2px solid black; /* Bold black border */
 }
 
 .grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Create a 2x2 grid */
+  gap: 20px; /* Space between grid items */
 }
 
 .tile {
   background: #ffffff; /* White background for tiles */
   border: 1px solid #dddddd; /* Light grey border for tiles */
-  border-radius: 8px; /* Rounded corners for the tiles */
   padding: 20px; /* Increased padding inside tiles */
-  flex: 1;
-  min-width: 300px; /* Minimum width for responsiveness */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
   transition: box-shadow 0.3s; /* Smooth shadow transition on hover */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center; /* Center align text */
+  height: 250px; /* Fixed height for uniform tiles */
+}
+
+.tile a {
+  text-decoration: none;
+  color: #1f2a44;
+  font-weight: bold;
+  margin-bottom: 10px; /* Space between title and image */
+}
+
+.tile img {
+  width: 80px; /* Smaller size for the images */
+  height: auto;
 }
 
 .tile:hover {
@@ -140,4 +226,18 @@ body {
 footer {
   text-align: center;
   margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr; /* Single column on smaller screens */
+  }
+
+  .navigation ul li {
+    margin: 0 10px; /* Adjust margin for smaller screens */
+  }
+
+  .tile {
+    height: auto; /* Allow tiles to adjust height */
+  }
 }
