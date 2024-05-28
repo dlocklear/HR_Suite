@@ -74,6 +74,19 @@ body {
   color: #ff6600; /* Subtle change for hover and focus */
 }
 
+.giant-picture {
+  display: flex;
+  justify-content: center; /* Center the image */
+  padding: 0px 0; /* Optional: Add some padding */
+}
+
+.giant-picture img {
+  width: 200%;
+  max-width: 1500px; /* Set a maximum width */
+  height: 200%;
+  max-height: 350px;
+}
+
 .container {
   background: #ffffff; /* White background for the container */
   padding: 2rem 4rem; /* Increased padding for better spacing */
