@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from supabase import create_client, Client
 
+
 def init_routes(app):
     @app.route('/')
     def index():
@@ -52,7 +53,7 @@ def init_routes(app):
 
     @app.route('/admin/change_password', methods=['GET', 'POST'])
     def admin_change_password():
-        if 'user' not in session or session['user']['role'] != 'admin':
+        if 'user' not in session or session['user']['role'] != 'SuperUser':
             flash('You need admin privileges to access this page.')
             return redirect(url_for('login'))
 
@@ -64,7 +65,7 @@ def init_routes(app):
                 # Update user's password using Supabase Admin API
                 response = app.supabase.auth.admin.update_user(
                     user_id, {'password': new_password})
-                
+
                 if response.error:
                     flash(f"Error updating password: {response.error.message}")
                 else:
@@ -73,18 +74,3 @@ def init_routes(app):
                 flash(f"An error occurred: {str(e)}")
 
         return render_template('admin_change_password.html')
-
-# Initialize the Supabase client within the app context
-def create_supabase_client():
-    url = 'https://your-supabase-url.supabase.co'
-    key = 'your-service-role-key'  # Admin service role key
-    return create_client(url, key)
-
-# Example usage in the app context
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'
-app.supabase = create_supabase_client()
-init_routes(app)
-
-if __name__ == '__main__':
-    app.run(debug=True)
