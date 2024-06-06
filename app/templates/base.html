@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}HR Suite{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
+  </head>
+  <body>
+    <header>
+      <div class="banner">
+        <div class="logo">
+          <img
+            src="{{ url_for('static', filename='img/LuxiumLogo.png') }}"
+            alt="Luxium Solutions Logo"
+          />
+        </div>
+        <div class="top-right-links">
+          <a href="#">About</a>
+          <a href="#">Services</a>
+          <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+        </div>
+      </div>
+      <nav class="navigation">
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Resources</a></li>
+          <li><a href="#">Myself</a></li>
+          <li><a href="#">People</a></li>
+          <li><a href="#">My Team</a></li>
+          <li><a href="#">Process</a></li>
+          <li><a href="#">Reports & Analytics</a></li>
+          <li><a href="#">Setup & Security</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>{% block content %}{% endblock %}</main>
+    <footer>
+      <p>© 2024 Luxium Solutions</p>
+    </footer>
+  </body>
+</html>
