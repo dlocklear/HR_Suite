@@ -73,18 +73,3 @@ def init_routes(app):
                 flash(f"An error occurred: {str(e)}")
 
         return render_template('admin_change_password.html')
-
-# Initialize the Supabase client within the app context
-def create_supabase_client():
-    url = 'https://your-supabase-url.supabase.co'
-    key = 'your-service-role-key'  # Admin service role key
-    return create_client(url, key)
-
-# Example usage in the app context
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'
-app.supabase = create_supabase_client()
-init_routes(app)
-
-if __name__ == '__main__':
-    app.run(debug=True)
