@@ -3,30 +3,28 @@ from sendgrid import SendGridAPIClient
 import os
 from supabase import create_client, Client
 from flask import Flask
+from flask_bcrypt import Bcrypt
+from config import Config
 from dotenv import load_dotenv
+import os
+from supabase import create_client, Client
+
 load_dotenv()
 
+bcrypt = Bcrypt()
 
-def create_app():
+def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
+    app.config.from_object(config_class)
 
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_ANON_KEY")
-
-    if not url or not key:
-        raise EnvironmentError(
-            "Missing Supabase configuration in environment variables.")
+    bcrypt.init_app(app)
 
     # Initialize Supabase client and attach to the Flask app
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_ANON_KEY")
     app.supabase = create_client(url, key)
 
-    # SENDGRID CONFIG
-    app.config['SENDGRID_API_KEY'] = os.getenv("SENDGRID_API_KEY")
-    app.config['FROM_EMAIL'] = 'imvaader@gmail.com'
-    app.sendgrid_client = SendGridAPIClient(app.config['SENDGRID_API_KEY'])
-
-    from app import routes
-    routes.init_routes(app)
+    from app.routes import init_routes
+    init_routes(app)
 
     return app

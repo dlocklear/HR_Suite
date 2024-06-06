@@ -33,3 +33,5 @@ supafunc==0.4.5
 typing_extensions==4.11.0
 websockets==12.0
 Werkzeug==3.0.2
+Flask-Bcrypt
+Flask-WTF
