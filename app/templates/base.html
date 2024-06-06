@@ -35,9 +35,20 @@
         </ul>
       </nav>
     </header>
-    <main>{% block content %}{% endblock %}</main>
-    <footer>
-      <p>© 2024 Luxium Solutions</p>
-    </footer>
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      <div class="flash-messages">
+          {% for message in messages %}
+          <p>{{ message }}</p>
+          {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+  
+      <main>{% block content %}{% endblock %}</main>
+      <footer>
+          <p>© 2024 Luxium Solutions</p>
+      </footer>
   </body>
-</html>
+  </html>

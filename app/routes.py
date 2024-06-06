@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, session, url_for, f
 from supabase import create_client, Client
 from app.forms import RegistrationForm
 from app import bcrypt
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 def init_routes(app):
     @app.route('/')
@@ -47,12 +49,28 @@ def init_routes(app):
                 'password': form.password.data,
             })
             if response.user:
+                # Insert the new user into the users table
                 app.supabase.table('users').insert({
+                    'name': form.name.data,
                     'email': form.email.data,
                     'password': hashed_password,
                     'status': 'pending',
                     'auth_user_id': response.user.id
                 }).execute()
+
+                # Send confirmation email using SendGrid
+                message = Mail(
+                    from_email=app.config['FROM_EMAIL'],
+                    to_emails=form.email.data,
+                    subject='Welcome to HR Suite',
+                    html_content='<strong>Your account has been created! Wait for admin approval.</strong>'
+                )
+                try:
+                    sg = SendGridAPIClient(app.config['SENDGRID_API_KEY'])
+                    sg.send(message)
+                except Exception as e:
+                    print(e.message)
+
                 flash('Your account has been created! Wait for admin approval.', 'success')
                 return redirect(url_for('login'))
             else:
@@ -119,3 +137,22 @@ def init_routes(app):
                 flash(f"An error occurred: {str(e)}")
 
         return render_template('admin_change_password.html')
+
+    @app.route('/admin/reset_password', methods=['POST'])
+    def admin_reset_password():
+        if 'user' not in session or session['user']['role'] != 'SuperUser':
+            flash('You need admin privileges to access this page.')
+            return redirect(url_for('login'))
+
+        user_email = request.form['user_email']
+        try:
+            # Send password reset email using Supabase
+            response = app.supabase.auth.api.reset_password_for_email(user_email)
+            if response:
+                flash(f"Password reset email sent to {user_email}.", 'success')
+            else:
+                flash(f"Failed to send password reset email to {user_email}.", 'danger')
+        except Exception as e:
+            flash(f"An error occurred: {str(e)}")
+
+        return redirect(url_for('admin_dashboard'))

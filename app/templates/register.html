@@ -10,6 +10,10 @@
     <form method="POST" action="{{ url_for('register') }}">
         {{ form.hidden_tag() }}
         <div>
+            {{ form.name.label }}
+            {{ form.name }}
+        </div>
+        <div>
             {{ form.email.label }}
             {{ form.email }}
         </div>
