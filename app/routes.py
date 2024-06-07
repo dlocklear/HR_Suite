@@ -156,3 +156,15 @@ def init_routes(app):
             flash(f"An error occurred: {str(e)}")
 
         return redirect(url_for('admin_dashboard'))
+
+    @app.route('/employment')
+    def employment():
+        if 'user' not in session:
+            flash('You need to be logged in to view this page.')
+            return redirect(url_for('login'))
+        
+        # Fetch the user's information from the employees table
+        user_id = session['user']['id']
+        employee_data = app.supabase.table('employees').select('*').eq('auth_user_id', user_id).execute().data[0]
+        
+        return render_template('employment.html', employee=employee_data)
