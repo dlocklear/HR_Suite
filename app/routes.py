@@ -5,7 +5,6 @@ from app import bcrypt
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-
 def init_routes(app):
     @app.route('/')
     def index():
@@ -44,8 +43,7 @@ def init_routes(app):
     def register():
         form = RegistrationForm()
         if form.validate_on_submit():
-            hashed_password = bcrypt.generate_password_hash(
-                form.password.data).decode('utf-8')
+            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
             response = app.supabase.auth.sign_up({
                 'email': form.email.data,
                 'password': form.password.data,
@@ -58,6 +56,15 @@ def init_routes(app):
                     'password': hashed_password,
                     'status': 'pending',
                     'auth_user_id': response.user.id
+                }).execute()
+
+                # Insert the new user into the employees table
+                app.supabase.table('employees').insert({
+                    'name': form.name.data,
+                    'email': form.email.data,
+                    'auth_user_id': response.user.id,
+                    'employee_id': generate_employee_id(),  # Assuming a function to generate employee IDs
+                    'department': 'Pending'  # Or set the department as needed
                 }).execute()
 
                 # Send confirmation email using SendGrid
@@ -73,8 +80,7 @@ def init_routes(app):
                 except Exception as e:
                     print(e.message)
 
-                flash(
-                    'Your account has been created! Wait for admin approval.', 'success')
+                flash('Your account has been created! Wait for admin approval.', 'success')
                 return redirect(url_for('login'))
             else:
                 flash('Registration failed. Please try again.', 'danger')
@@ -100,8 +106,7 @@ def init_routes(app):
         if 'user' not in session or session['user']['role'] != 'SuperUser':
             flash('You need admin privileges to access this page.')
             return redirect(url_for('login'))
-        users = app.supabase.table('users').select(
-            '*').eq('status', 'pending').execute().data
+        users = app.supabase.table('users').select('*').eq('status', 'pending').execute().data
         return render_template('admin_dashboard.html', users=users)
 
     @app.route('/approve_user/<int:user_id>')
@@ -109,10 +114,8 @@ def init_routes(app):
         if 'user' not in session or session['user']['role'] != 'SuperUser':
             flash('You need admin privileges to access this page.')
             return redirect(url_for('login'))
-        user = app.supabase.table('users').select(
-            '*').eq('id', user_id).execute().data[0]
-        app.supabase.table('users').update(
-            {'status': 'approved'}).eq('id', user_id).execute()
+        user = app.supabase.table('users').select('*').eq('id', user_id).execute().data[0]
+        app.supabase.table('users').update({'status': 'approved'}).eq('id', user_id).execute()
         # Update Supabase authentication
         app.supabase.auth.update_user(
             user['auth_user_id'], {'data': {'status': 'approved'}}
@@ -153,13 +156,11 @@ def init_routes(app):
         user_email = request.form['user_email']
         try:
             # Send password reset email using Supabase
-            response = app.supabase.auth.api.reset_password_for_email(
-                user_email)
+            response = app.supabase.auth.api.reset_password_for_email(user_email)
             if response:
                 flash(f"Password reset email sent to {user_email}.", 'success')
             else:
-                flash(
-                    f"Failed to send password reset email to {user_email}.", 'danger')
+                flash(f"Failed to send password reset email to {user_email}.", 'danger')
         except Exception as e:
             flash(f"An error occurred: {str(e)}")
 
@@ -170,10 +171,13 @@ def init_routes(app):
         if 'user' not in session:
             flash('You need to be logged in to view this page.')
             return redirect(url_for('login'))
-
+        
         # Fetch the user's information from the employees table
         user_id = session['user']['id']
-        employee_data = app.supabase.table('employees').select(
-            '*').eq('auth_user_id', user_id).execute().data[0]
-
+        employee_data = app.supabase.table('employees').select('*').eq('auth_user_id', user_id).execute().data[0]
+        
         return render_template('employment.html', employee=employee_data)
+
+def generate_employee_id():
+    # Implement your logic to generate a unique employee ID
+    return 'EMP' + str(uuid.uuid4())
