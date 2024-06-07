@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <title>Electronic Services</title>
+</head>
+<body>
+    <header class="container-fluid">
+        <div class="logo">
+            <img src="/static/img/LuxiumLogo.png" alt="Company Logo">
+        </div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li><a href="/logout" class="logout-btn">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <h1>Electronic Services</h1>
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('electronic_services') }}">
+            {{ form.hidden_tag() }}
+            <div>
+                {{ form.file.label }}
+                {{ form.file }}
+            </div>
+            <div>
+                {{ form.submit }}
+            </div>
+        </form>
+    </main>
+</body>
+</html>

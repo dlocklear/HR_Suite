@@ -15,14 +15,17 @@
         <nav>
             <ul>
                 <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                <li><a href="#">Calculation Configuration</a></li>
+                <li><a href="#" class="Calculation Configuration">Calculation Configuration</a></li>
                 <li><a href="/logout" class="logout-btn">Logout</a></li>
             </ul>
         </nav>
     </header>
     <main class="container">
         <h1>Admin Dashboard</h1>
-        <h2>Pending Users</h2>
+        <a href="{{ url_for('add_user') }}" class="button">Add User</a>
+        <h2>password reset</h2>
+        <a href="{{ url_for('admin_reset_password') }}" class="button">Send Password Reset</a>
+        <h3>Pending Users</h3>
         <table>
             <thead>
                 <tr>
@@ -36,18 +39,13 @@
                     <td>{{ user.email }}</td>
                     <td>
                         <a href="{{ url_for('approve_user', user_id=user.id) }}" class="button">Approve</a>
+                        <a href="{{ url_for('edit_user', user_id=user.id) }}" class="button">Edit</a>
+                        <a href="{{ url_for('admin_reset_password', user_email=user.email) }}" class="button">Reset Password</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-
-        <h2>Reset Passwords</h2>
-        <form method="POST" action="{{ url_for('admin_reset_password') }}">
-            <label for="user_email">User Email:</label>
-            <input type="email" id="user_email" name="user_email" required>
-            <button type="submit">Send Reset Password Email</button>
-        </form>
     </main>
 </body>
 </html>

@@ -1,9 +1,15 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask import Flask, render_template, request, redirect, session, url_for, flash, send_from_directory
+from werkzeug.utils import secure_filename
+import os
 from supabase import create_client, Client
-from app.forms import RegistrationForm
+from app.forms import RegistrationForm, PasswordResetForm, UploadForm
 from app import bcrypt
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+import uuid
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
 
 def init_routes(app):
     @app.route('/')
@@ -63,8 +69,13 @@ def init_routes(app):
                     'name': form.name.data,
                     'email': form.email.data,
                     'auth_user_id': response.user.id,
-                    'employee_id': generate_employee_id(),  # Assuming a function to generate employee IDs
-                    'department': 'Pending'  # Or set the department as needed
+                    'employee_id': form.employee_id.data,
+                    'title': form.title.data,
+                    'reports_to': form.reports_to.data,
+                    'position_id': form.position_id.data,
+                    'hire_date': form.hire_date.data,
+                    'seniority_date': form.seniority_date.data,
+                    'department': form.department.data
                 }).execute()
 
                 # Send confirmation email using SendGrid
@@ -147,24 +158,27 @@ def init_routes(app):
 
         return render_template('admin_change_password.html')
 
-    @app.route('/admin/reset_password', methods=['POST'])
-    def admin_reset_password():
+    @app.route('/admin/reset_password/<string:user_email>', methods=['GET', 'POST'])
+    def admin_reset_password(user_email):
         if 'user' not in session or session['user']['role'] != 'SuperUser':
             flash('You need admin privileges to access this page.')
             return redirect(url_for('login'))
 
-        user_email = request.form['user_email']
-        try:
-            # Send password reset email using Supabase
-            response = app.supabase.auth.api.reset_password_for_email(user_email)
-            if response:
-                flash(f"Password reset email sent to {user_email}.", 'success')
-            else:
-                flash(f"Failed to send password reset email to {user_email}.", 'danger')
-        except Exception as e:
-            flash(f"An error occurred: {str(e)}")
+        form = PasswordResetForm()
+        if request.method == 'GET':
+            form.user_email.data = user_email
 
-        return redirect(url_for('admin_dashboard'))
+        if form.validate_on_submit():
+            new_password = form.new_password.data
+            response = app.supabase.auth.api.update_user_by_email(
+                user_email, {'password': new_password}
+            )
+            if response.error:
+                flash(f"Error resetting password: {response.error.message}")
+            else:
+                flash(f"Password reset for {user_email}.", 'success')
+            return redirect(url_for('admin_dashboard'))
+        return render_template('admin_reset_password.html', form=form)
 
     @app.route('/employment')
     def employment():
@@ -177,6 +191,87 @@ def init_routes(app):
         employee_data = app.supabase.table('employees').select('*').eq('auth_user_id', user_id).execute().data[0]
         
         return render_template('employment.html', employee=employee_data)
+
+    @app.route('/admin/add_user', methods=['GET', 'POST'])
+    def add_user():
+        if 'user' not in session or session['user']['role'] != 'SuperUser':
+            flash('You need admin privileges to access this page.')
+            return redirect(url_for('login'))
+
+        form = RegistrationForm()
+        if form.validate_on_submit():
+            app.supabase.table('employees').insert({
+                'name': form.name.data,
+                'email': form.email.data,
+                'employee_id': form.employee_id.data,
+                'title': form.title.data,
+                'reports_to': form.reports_to.data,
+                'position_id': form.position_id.data,
+                'hire_date': form.hire_date.data,
+                'seniority_date': form.seniority_date.data,
+                'department': form.department.data,
+                'auth_user_id': generate_employee_id(),  # Assuming a function to generate auth_user_id
+            }).execute()
+            flash('User added successfully.', 'success')
+            return redirect(url_for('admin_dashboard'))
+        return render_template('add_user.html', form=form)
+
+    @app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
+    def edit_user(user_id):
+        if 'user' not in session or session['user']['role'] != 'SuperUser':
+            flash('You need admin privileges to access this page.')
+            return redirect(url_for('login'))
+
+        form = RegistrationForm()
+        user = app.supabase.table('employees').select('*').eq('id', user_id).execute().data[0]
+
+        if request.method == 'GET':
+            form.name.data = user['name']
+            form.email.data = user['email']
+            form.employee_id.data = user['employee_id']
+            form.title.data = user['title']
+            form.reports_to.data = user['reports_to']
+            form.position_id.data = user['position_id']
+            form.hire_date.data = user['hire_date']
+            form.seniority_date.data = user['seniority_date']
+            form.department.data = user['department']
+
+        if form.validate_on_submit():
+            app.supabase.table('employees').update({
+                'name': form.name.data,
+                'email': form.email.data,
+                'employee_id': form.employee_id.data,
+                'title': form.title.data,
+                'reports_to': form.reports_to.data,
+                'position_id': form.position_id.data,
+                'hire_date': form.hire_date.data,
+                'seniority_date': form.seniority_date.data,
+                'department': form.department.data
+            }).eq('id', user_id).execute()
+            flash('User updated successfully.', 'success')
+            return redirect(url_for('admin_dashboard'))
+        return render_template('edit_user.html', form=form, user_id=user_id)
+
+    @app.route('/electronic_services', methods=['GET', 'POST'])
+    def electronic_services():
+        if 'user' not in session:
+            flash('You need to be logged in to view this page.')
+            return redirect(url_for('login'))
+
+        form = UploadForm()
+        if form.validate_on_submit():
+            file = form.file.data
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                flash('File uploaded successfully.', 'success')
+                # Here you would implement functionality to convert the file into a fillable form
+                # and save it back to the database.
+                return redirect(url_for('electronic_services'))
+            else:
+                flash('Invalid file type. Only PDF, DOCX, and CSV are allowed.', 'danger')
+        
+        return render_template('electronic_services.html', form=form)
 
 def generate_employee_id():
     # Implement your logic to generate a unique employee ID

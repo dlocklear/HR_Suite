@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <form method="POST" action="{{ url_for('edit_user', user_id=user_id) }}">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.name.label }}
+            {{ form.name }}
+        </div>
+        <div>
+            {{ form.email.label }}
+            {{ form.email }}
+        </div>
+        <div>
+            {{ form.password.label }}
+            {{ form.password }}
+        </div>
+        <div>
+            {{ form.confirm_password.label }}
+            {{ form.confirm_password }}
+        </div>
+        <div>
+            {{ form.employee_id.label }}
+            {{ form.employee_id }}
+        </div>
+        <div>
+            {{ form.title.label }}
+            {{ form.title }}
+        </div>
+        <div>
+            {{ form.reports_to.label }}
+            {{ form.reports_to }}
+        </div>
+        <div>
+            {{ form.position_id.label }}
+            {{ form.position_id }}
+        </div>
+        <div>
+            {{ form.hire_date.label }}
+            {{ form.hire_date }}
+        </div>
+        <div>
+            {{ form.seniority_date.label }}
+            {{ form.seniority_date }}
+        </div>
+        <div>
+            {{ form.department.label }}
+            {{ form.department }}
+        </div>
+        <div>
+            {{ form.submit }}
+        </div>
+    </form>
+</body>
+</html>
