@@ -8,8 +8,10 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import uuid
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
+
 
 def init_routes(app):
     @app.route('/')
@@ -49,7 +51,8 @@ def init_routes(app):
     def register():
         form = RegistrationForm()
         if form.validate_on_submit():
-            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            hashed_password = bcrypt.generate_password_hash(
+                form.password.data).decode('utf-8')
             response = app.supabase.auth.sign_up({
                 'email': form.email.data,
                 'password': form.password.data,
@@ -91,7 +94,8 @@ def init_routes(app):
                 except Exception as e:
                     print(e.message)
 
-                flash('Your account has been created! Wait for admin approval.', 'success')
+                flash(
+                    'Your account has been created! Wait for admin approval.', 'success')
                 return redirect(url_for('login'))
             else:
                 flash('Registration failed. Please try again.', 'danger')
@@ -117,7 +121,8 @@ def init_routes(app):
         if 'user' not in session or session['user']['role'] != 'SuperUser':
             flash('You need admin privileges to access this page.')
             return redirect(url_for('login'))
-        users = app.supabase.table('users').select('*').eq('status', 'pending').execute().data
+        users = app.supabase.table('users').select(
+            '*').eq('status', 'pending').execute().data
         return render_template('admin_dashboard.html', users=users)
 
     @app.route('/approve_user/<int:user_id>')
@@ -125,8 +130,10 @@ def init_routes(app):
         if 'user' not in session or session['user']['role'] != 'SuperUser':
             flash('You need admin privileges to access this page.')
             return redirect(url_for('login'))
-        user = app.supabase.table('users').select('*').eq('id', user_id).execute().data[0]
-        app.supabase.table('users').update({'status': 'approved'}).eq('id', user_id).execute()
+        user = app.supabase.table('users').select(
+            '*').eq('id', user_id).execute().data[0]
+        app.supabase.table('users').update(
+            {'status': 'approved'}).eq('id', user_id).execute()
         # Update Supabase authentication
         app.supabase.auth.update_user(
             user['auth_user_id'], {'data': {'status': 'approved'}}
@@ -185,11 +192,12 @@ def init_routes(app):
         if 'user' not in session:
             flash('You need to be logged in to view this page.')
             return redirect(url_for('login'))
-        
+
         # Fetch the user's information from the employees table
         user_id = session['user']['id']
-        employee_data = app.supabase.table('employees').select('*').eq('auth_user_id', user_id).execute().data[0]
-        
+        employee_data = app.supabase.table('employees').select(
+            '*').eq('auth_user_id', user_id).execute().data[0]
+
         return render_template('employment.html', employee=employee_data)
 
     @app.route('/admin/add_user', methods=['GET', 'POST'])
@@ -210,7 +218,8 @@ def init_routes(app):
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
                 'department': form.department.data,
-                'auth_user_id': generate_employee_id(),  # Assuming a function to generate auth_user_id
+                # Assuming a function to generate auth_user_id
+                'auth_user_id': generate_employee_id(),
             }).execute()
             flash('User added successfully.', 'success')
             return redirect(url_for('admin_dashboard'))
@@ -223,7 +232,8 @@ def init_routes(app):
             return redirect(url_for('login'))
 
         form = RegistrationForm()
-        user = app.supabase.table('employees').select('*').eq('id', user_id).execute().data[0]
+        user = app.supabase.table('employees').select(
+            '*').eq('id', user_id).execute().data[0]
 
         if request.method == 'GET':
             form.name.data = user['name']
@@ -269,9 +279,11 @@ def init_routes(app):
                 # and save it back to the database.
                 return redirect(url_for('electronic_services'))
             else:
-                flash('Invalid file type. Only PDF, DOCX, and CSV are allowed.', 'danger')
-        
+                flash(
+                    'Invalid file type. Only PDF, DOCX, and CSV are allowed.', 'danger')
+
         return render_template('electronic_services.html', form=form)
+
 
 def generate_employee_id():
     # Implement your logic to generate a unique employee ID
