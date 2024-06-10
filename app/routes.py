@@ -9,8 +9,10 @@ from sendgrid.helpers.mail import Mail
 import uuid
 from pdfrw import PdfReader, PdfWriter, PageMerge
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
+
 
 def init_routes(app):
     @app.route('/')
@@ -34,9 +36,9 @@ def init_routes(app):
                     'role').eq('auth_user_id', response.user.id).execute()
                 # Store user details in session to keep them logged in
                 session['user'] = {
-                    'id': response.user.id,
+                    'id': response.user.id,  # auth_user_id is being stored
                     'email': response.user.email,
-                    'role': user_data.data[0]['role']  # Store role in session
+                    'role': user_data.data[0]['role']
                 }
                 return redirect(url_for('dashboard'))
             else:
@@ -50,7 +52,8 @@ def init_routes(app):
     def register():
         form = RegistrationForm()
         if form.validate_on_submit():
-            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            hashed_password = bcrypt.generate_password_hash(
+                form.password.data).decode('utf-8')
             response = app.supabase.auth.sign_up({
                 'email': form.email.data,
                 'password': form.password.data,
@@ -92,7 +95,8 @@ def init_routes(app):
                 except Exception as e:
                     print(e.message)
 
-                flash('Your account has been created! Wait for admin approval.', 'success')
+                flash(
+                    'Your account has been created! Wait for admin approval.', 'success')
                 return redirect(url_for('login'))
             else:
                 flash('Registration failed. Please try again.', 'danger')
@@ -118,7 +122,8 @@ def init_routes(app):
         if 'user' not in session or session['user']['role'] != 'SuperUser':
             flash('You need admin privileges to access this page.')
             return redirect(url_for('login'))
-        users = app.supabase.table('users').select('*').eq('status', 'pending').execute().data
+        users = app.supabase.table('users').select(
+            '*').eq('status', 'pending').execute().data
         return render_template('admin_dashboard.html', users=users)
 
     @app.route('/approve_user/<int:user_id>')
@@ -126,8 +131,10 @@ def init_routes(app):
         if 'user' not in session or session['user']['role'] != 'SuperUser':
             flash('You need admin privileges to access this page.')
             return redirect(url_for('login'))
-        user = app.supabase.table('users').select('*').eq('id', user_id).execute().data[0]
-        app.supabase.table('users').update({'status': 'approved'}).eq('id', user_id).execute()
+        user = app.supabase.table('users').select(
+            '*').eq('id', user_id).execute().data[0]
+        app.supabase.table('users').update(
+            {'status': 'approved'}).eq('id', user_id).execute()
         # Update Supabase authentication
         app.supabase.auth.update_user(
             user['auth_user_id'], {'data': {'status': 'approved'}}
@@ -186,11 +193,12 @@ def init_routes(app):
         if 'user' not in session:
             flash('You need to be logged in to view this page.')
             return redirect(url_for('login'))
-        
+
         # Fetch the user's information from the employees table
         user_id = session['user']['id']
-        employee_data = app.supabase.table('employees').select('*').eq('auth_user_id', user_id).execute().data[0]
-        
+        employee_data = app.supabase.table('employees').select(
+            '*').eq('auth_user_id', user_id).execute().data[0]
+
         return render_template('employment.html', employee=employee_data)
 
     @app.route('/manager/employment', methods=['GET'])
@@ -235,7 +243,8 @@ def init_routes(app):
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
                 'department': form.department.data,
-                'auth_user_id': generate_employee_id(),  # Assuming a function to generate auth_user_id
+                # Assuming a function to generate auth_user_id
+                'auth_user_id': generate_employee_id(),
             }).execute()
             flash('User added successfully.', 'success')
             return redirect(url_for('admin_dashboard'))
@@ -248,7 +257,8 @@ def init_routes(app):
             return redirect(url_for('login'))
 
         form = RegistrationForm()
-        user = app.supabase.table('employees').select('*').eq('id', user_id).execute().data[0]
+        user = app.supabase.table('employees').select(
+            '*').eq('id', user_id).execute().data[0]
 
         if request.method == 'GET':
             form.name.data = user['name']
@@ -290,36 +300,42 @@ def init_routes(app):
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
-                
-                file_url = url_for('uploaded_file', filename=filename, _external=True)
-                
+
+                file_url = url_for(
+                    'uploaded_file', filename=filename, _external=True)
+
                 app.supabase.table('electronic_services').insert({
                     'user_id': session['user']['id'],
                     'file_name': filename,
                     'file_type': file.filename.rsplit('.', 1)[1].lower(),
                     'file_url': file_url
                 }).execute()
-                
+
                 flash('File uploaded and metadata saved successfully.', 'success')
                 return redirect(url_for('electronic_services'))
             else:
-                flash('Invalid file type. Only PDF, DOCX, and CSV are allowed.', 'danger')
+                flash(
+                    'Invalid file type. Only PDF, DOCX, and CSV are allowed.', 'danger')
 
         # Fetch the list of uploaded files
         user_id = session['user']['id']
-        files = app.supabase.table('electronic_services').select('*').eq('user_id', user_id).execute().data
+        files = app.supabase.table('electronic_services').select(
+            '*').eq('user_id', user_id).execute().data
 
         return render_template('electronic_services.html', form=form, files=files)
 
     @app.route('/convert_to_fillable/<file_id>', methods=['GET'])
     def convert_to_fillable(file_id):
         # Fetch the file metadata from the electronic_services table
-        file_data = app.supabase.table('electronic_services').select('*').eq('id', file_id).execute().data[0]
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_data['file_name'])
+        file_data = app.supabase.table('electronic_services').select(
+            '*').eq('id', file_id).execute().data[0]
+        file_path = os.path.join(
+            app.config['UPLOAD_FOLDER'], file_data['file_name'])
 
         # Perform the conversion to fillable PDF
         fillable_file_name = 'fillable_' + file_data['file_name']
-        fillable_file_path = os.path.join(app.config['UPLOAD_FOLDER'], fillable_file_name)
+        fillable_file_path = os.path.join(
+            app.config['UPLOAD_FOLDER'], fillable_file_name)
         convert_to_fillable_pdf(file_path, fillable_file_path)
 
         # Debug: print the file paths
@@ -327,8 +343,10 @@ def init_routes(app):
         print(f"Fillable file path: {fillable_file_path}")
 
         # Update the database with the new fillable file URL
-        fillable_file_url = url_for('uploaded_file', filename=fillable_file_name, _external=True)
-        app.supabase.table('electronic_services').update({'fillable_file_url': fillable_file_url}).eq('id', file_id).execute()
+        fillable_file_url = url_for(
+            'uploaded_file', filename=fillable_file_name, _external=True)
+        app.supabase.table('electronic_services').update(
+            {'fillable_file_url': fillable_file_url}).eq('id', file_id).execute()
 
         flash('File converted to fillable PDF successfully.', 'success')
         return redirect(url_for('electronic_services'))
@@ -339,9 +357,11 @@ def init_routes(app):
         print(f"Requested filename: {filename}")
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+
 def generate_employee_id():
     # Implement your logic to generate a unique employee ID
     return 'EMP' + str(uuid.uuid4())
+
 
 def convert_to_fillable_pdf(input_path, output_path):
     template_pdf = PdfReader(input_path)
