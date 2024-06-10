@@ -31,6 +31,21 @@
                 {{ form.submit }}
             </div>
         </form>
+
+        <h2>Uploaded Files</h2>
+        <ul>
+            {% for file in files %}
+                <li>
+                    <a href="{{ file.file_url }}" target="_blank">{{ file.file_name }}</a> ({{ file.file_type }})
+                    {% if file.file_type == 'pdf' %}
+                        <a href="{{ url_for('convert_to_fillable', file_id=file.id) }}" class="button">Convert to Fillable PDF</a>
+                    {% endif %}
+                    {% if file.fillable_file_url %}
+                        <a href="{{ file.fillable_file_url }}" target="_blank">Download Fillable PDF</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
     </main>
 </body>
 </html>
