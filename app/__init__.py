@@ -25,12 +25,16 @@ def create_app(config_class=Config):
     key = os.getenv("SUPABASE_ANON_KEY")
     app.supabase = create_client(url, key)
 
-    # Configure upload folder
+    # Configure upload folder and allowed extensions
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.config['ALLOWED_EXTENSIONS'] = ALLOWED_EXTENSIONS
 
     # Ensure the upload directory exists
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
+
+    # Debug: print the upload folder path
+    print(f"Upload folder path: {UPLOAD_FOLDER}")
 
     from app.routes import init_routes
     init_routes(app)
