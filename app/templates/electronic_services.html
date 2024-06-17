@@ -3,49 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
     <title>Electronic Services</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <header class="container-fluid">
-        <div class="logo">
-            <img src="/static/img/LuxiumLogo.png" alt="Company Logo">
-        </div>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                <li><a href="/logout" class="logout-btn">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
-    <main class="container">
-        <h1>Electronic Services</h1>
-        <form method="POST" enctype="multipart/form-data" action="{{ url_for('electronic_services') }}">
-            {{ form.hidden_tag() }}
-            <div>
-                {{ form.file.label }}
-                {{ form.file }}
-            </div>
-            <div>
-                {{ form.submit }}
-            </div>
-        </form>
+    <h1>Electronic Services</h1>
 
-        <h2>Uploaded Files</h2>
-        <ul>
-            {% for file in files %}
-                <li>
-                    <a href="{{ file.file_url }}" target="_blank">{{ file.file_name }}</a> ({{ file.file_type }})
-                    {% if file.file_type == 'pdf' %}
-                        <a href="{{ url_for('convert_to_fillable', file_id=file.id) }}" class="button">Convert to Fillable PDF</a>
-                    {% endif %}
-                    {% if file.fillable_file_url %}
-                        <a href="{{ file.fillable_file_url }}" target="_blank">Download Fillable PDF</a>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    </main>
+    <form action="{{ url_for('electronic_services') }}" method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.file.label }}
+            {{ form.file }}
+        </div>
+        <div>
+            {{ form.submit }}
+        </div>
+    </form>
+
+    <h2>Uploaded Files</h2>
+    <ul>
+        {% for file in files %}
+            <li>
+                <a href="{{ url_for('download_file', id=file.id) }}">{{ file.file_name }}</a>
+                <form action="{{ url_for('delete_file', id=file.id) }}" method="POST" style="display:inline;">
+                    <button type="submit">Delete</button>
+                </form>
+                {% if file.fillable_file_content %}
+                    <a href="{{ url_for('download_file', id=file.id, fillable=True) }}" target="_blank">Download Fillable</a>
+                {% else %}
+                    <a href="{{ url_for('convert_to_fillable', id=file.id) }}">Convert to Fillable PDF</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
 </body>
 </html>

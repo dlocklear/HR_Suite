@@ -1,13 +1,17 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash, send_from_directory
+from flask import Flask, render_template, request, redirect, session, url_for, flash, send_file
 from werkzeug.utils import secure_filename
 import os
+import base64
 from supabase import create_client, Client
 from app.forms import RegistrationForm, PasswordResetForm, UploadForm
 from app import bcrypt
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import uuid
-from pdfrw import PdfReader, PdfWriter, PageMerge
+import io
+from pdfrw import PdfReader, PdfWriter, PageMerge  # Correct import
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
@@ -25,22 +29,19 @@ def init_routes(app):
             email = request.form['email']
             password = request.form['password']
 
-            # Call Supabase to authenticate the user
             response = app.supabase.auth.sign_in_with_password(
                 {"email": email, "password": password})
 
             if response.user:
                 user_data = app.supabase.table('users').select(
                     'role').eq('auth_user_id', response.user.id).execute()
-                # Store user details in session to keep them logged in
                 session['user'] = {
                     'id': response.user.id,
                     'email': response.user.email,
-                    'role': user_data.data[0]['role']  # Store role in session
+                    'role': user_data.data[0]['role']
                 }
                 return redirect(url_for('dashboard'))
             else:
-                # If no user is returned, handle errors
                 error_message = response.error.message if response.error else "Login failed."
                 flash(error_message)
 
@@ -56,7 +57,6 @@ def init_routes(app):
                 'password': form.password.data,
             })
             if response.user:
-                # Insert the new user into the users table
                 app.supabase.table('users').insert({
                     'name': form.name.data,
                     'email': form.email.data,
@@ -65,7 +65,6 @@ def init_routes(app):
                     'auth_user_id': response.user.id
                 }).execute()
 
-                # Insert the new user into the employees table
                 app.supabase.table('employees').insert({
                     'name': form.name.data,
                     'email': form.email.data,
@@ -79,7 +78,6 @@ def init_routes(app):
                     'department': form.department.data
                 }).execute()
 
-                # Send confirmation email using SendGrid
                 message = Mail(
                     from_email=app.config['FROM_EMAIL'],
                     to_emails=form.email.data,
@@ -107,9 +105,7 @@ def init_routes(app):
 
     @app.route('/logout')
     def logout():
-        # Remove user from session
         session.pop('user', None)
-        # Redirect to login page with a success message
         flash("You have successfully logged out.")
         return redirect(url_for('login'))
 
@@ -128,7 +124,6 @@ def init_routes(app):
             return redirect(url_for('login'))
         user = app.supabase.table('users').select('*').eq('id', user_id).execute().data[0]
         app.supabase.table('users').update({'status': 'approved'}).eq('id', user_id).execute()
-        # Update Supabase authentication
         app.supabase.auth.update_user(
             user['auth_user_id'], {'data': {'status': 'approved'}}
         )
@@ -146,7 +141,6 @@ def init_routes(app):
             new_password = request.form['new_password']
 
             try:
-                # Update user's password using Supabase Admin API
                 response = app.supabase.auth.admin.update_user(
                     user_id, {'password': new_password})
 
@@ -187,7 +181,6 @@ def init_routes(app):
             flash('You need to be logged in to view this page.')
             return redirect(url_for('login'))
         
-        # Fetch the user's information from the employees table
         user_id = session['user']['id']
         employee_data = app.supabase.table('employees').select('*').eq('auth_user_id', user_id).execute().data[0]
         
@@ -211,7 +204,7 @@ def init_routes(app):
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
                 'department': form.department.data,
-                'auth_user_id': generate_employee_id(),  # Assuming a function to generate auth_user_id
+                'auth_user_id': generate_employee_id(),
             }).execute()
             flash('User added successfully.', 'success')
             return redirect(url_for('admin_dashboard'))
@@ -264,63 +257,72 @@ def init_routes(app):
             file = form.file.data
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(file_path)
-                
-                file_url = url_for('uploaded_file', filename=filename, _external=True)
+                file_content = file.read()
+                file_content_encoded = base64.b64encode(file_content).decode('utf-8')
+                file_type = file.filename.rsplit('.', 1)[1].lower()
+                user_id = session['user']['id']
                 
                 app.supabase.table('electronic_services').insert({
-                    'user_id': session['user']['id'],
+                    'user_id': user_id,
                     'file_name': filename,
-                    'file_type': file.filename.rsplit('.', 1)[1].lower(),
-                    'file_url': file_url
+                    'file_type': file_type,
+                    'file_content': file_content_encoded
                 }).execute()
-                
+
                 flash('File uploaded and metadata saved successfully.', 'success')
                 return redirect(url_for('electronic_services'))
             else:
                 flash('Invalid file type. Only PDF, DOCX, and CSV are allowed.', 'danger')
 
-        # Fetch the list of uploaded files
         user_id = session['user']['id']
         files = app.supabase.table('electronic_services').select('*').eq('user_id', user_id).execute().data
 
         return render_template('electronic_services.html', form=form, files=files)
 
-    @app.route('/convert_to_fillable/<file_id>', methods=['GET'])
-    def convert_to_fillable(file_id):
-        # Fetch the file metadata from the electronic_services table
-        file_data = app.supabase.table('electronic_services').select('*').eq('id', file_id).execute().data[0]
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_data['file_name'])
+    @app.route('/convert_to_fillable/<string:id>', methods=['GET'])
+    def convert_to_fillable(id):
+        file_data = app.supabase.table('electronic_services').select('*').eq('id', id).execute().data[0]
+        file_content = base64.b64decode(file_data['file_content'])
+        
+        # Assuming convert_to_fillable_pdf function is updated to handle file content directly
+        fillable_file_content = convert_to_fillable_pdf(file_content)
+        fillable_file_content_encoded = base64.b64encode(fillable_file_content).decode('utf-8')
 
-        # Perform the conversion to fillable PDF
-        fillable_file_name = 'fillable_' + file_data['file_name']
-        fillable_file_path = os.path.join(app.config['UPLOAD_FOLDER'], fillable_file_name)
-        convert_to_fillable_pdf(file_path, fillable_file_path)
-
-        # Debug: print the file paths
-        print(f"Original file path: {file_path}")
-        print(f"Fillable file path: {fillable_file_path}")
-
-        # Update the database with the new fillable file URL
-        fillable_file_url = url_for('uploaded_file', filename=fillable_file_name, _external=True)
-        app.supabase.table('electronic_services').update({'fillable_file_url': fillable_file_url}).eq('id', file_id).execute()
+        app.supabase.table('electronic_services').update({
+            'fillable_file_content': fillable_file_content_encoded
+        }).eq('id', id).execute()
 
         flash('File converted to fillable PDF successfully.', 'success')
         return redirect(url_for('electronic_services'))
 
-    @app.route('/uploads/<filename>')
-    def uploaded_file(filename):
-        # Debug: print the filename being requested
-        print(f"Requested filename: {filename}")
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    @app.route('/delete_file/<string:id>', methods=['POST'])
+    def delete_file(id):
+        if 'user' not in session:
+            flash('You need to be logged in to perform this action.')
+            return redirect(url_for('login'))
+
+        app.supabase.table('electronic_services').delete().eq('id', id).execute()
+
+        flash('File deleted successfully.', 'success')
+        return redirect(url_for('electronic_services'))
+
+    @app.route('/download/<string:id>', methods=['GET'])
+    def download_file(id):
+        file_data = app.supabase.table('electronic_services').select('file_name', 'file_content').eq('id', id).execute().data[0]
+        filename = file_data['file_name']
+        file_content = base64.b64decode(file_data['file_content'])
+
+        return send_file(
+            io.BytesIO(file_content),
+            download_name=filename,
+            as_attachment=True
+        )
 
 def generate_employee_id():
-    # Implement your logic to generate a unique employee ID
     return 'EMP' + str(uuid.uuid4())
 
-def convert_to_fillable_pdf(input_path, output_path):
-    template_pdf = PdfReader(input_path)
+def convert_to_fillable_pdf(file_content):
+    template_pdf = PdfReader(io.BytesIO(file_content))
     output_pdf = PdfWriter()
 
     for page in template_pdf.pages:
@@ -328,4 +330,8 @@ def convert_to_fillable_pdf(input_path, output_path):
         page_merge.render()
         output_pdf.addpage(page)
 
-    output_pdf.write(output_path)
+    output_stream = io.BytesIO()
+    output_pdf.write(output_stream)
+    output_stream.seek(0)
+
+    return output_stream.read()

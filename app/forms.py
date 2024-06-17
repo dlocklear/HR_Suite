@@ -26,4 +26,3 @@ class PasswordResetForm(FlaskForm):
 class UploadForm(FlaskForm):
     file = FileField('Document', validators=[DataRequired(), FileAllowed(['pdf', 'docx', 'csv'], 'Documents only!')])
     submit = SubmitField('Upload')
-
