@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, render_template, request, redirect, session, url_for, flash, send_file
 from werkzeug.utils import secure_filename
 import os
@@ -10,7 +11,7 @@ from sendgrid.helpers.mail import Mail
 import uuid
 import io
 from pdfrw import PdfReader, PdfWriter, PageMerge  # Correct import
-import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 def allowed_file(filename):
@@ -72,7 +73,6 @@ def init_routes(app):
                     'employee_id': form.employee_id.data,
                     'title': form.title.data,
                     'reports_to': form.reports_to.data,
-                    'position_id': form.position_id.data,
                     'hire_date': form.hire_date.data,
                     'seniority_date': form.seniority_date.data,
                     'department': form.department.data
@@ -186,6 +186,29 @@ def init_routes(app):
         
         return render_template('employment.html', employee=employee_data)
 
+    @app.route('/myteam_employment')
+    def myteam_employment():
+        if 'user' not in session:
+            flash('You need to be logged in to view this page.')
+            return redirect(url_for('login'))
+
+        user_id = session['user']['id']
+        user_role = session['user']['role']
+        
+        if user_role not in ['Manager', 'SuperUser']:  # Adjust roles as per your app's role structure
+            flash('You do not have the necessary permissions to view this page.')
+            return redirect(url_for('dashboard'))
+
+        # Fetch the current user's employee_id
+        current_employee = app.supabase.table('employees').select('employee_id').eq('auth_user_id', user_id).execute().data[0]
+        current_employee_id = current_employee['employee_id']
+        
+        # Fetch employees reporting to the current user
+        employees = app.supabase.table('employees').select('*').eq('reports_to', current_employee_id).execute().data
+        logging.debug(f"Employees reporting to {current_employee_id}: {employees}")  # Add this line to log the data
+
+        return render_template('myteam_employment.html', employees=employees)
+
     @app.route('/admin/add_user', methods=['GET', 'POST'])
     def add_user():
         if 'user' not in session or session['user']['role'] != 'SuperUser':
@@ -200,11 +223,10 @@ def init_routes(app):
                 'employee_id': form.employee_id.data,
                 'title': form.title.data,
                 'reports_to': form.reports_to.data,
-                'position_id': form.position_id.data,
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
                 'department': form.department.data,
-                'auth_user_id': generate_employee_id(),
+                'auth_user_id': form.auth_user_id.data
             }).execute()
             flash('User added successfully.', 'success')
             return redirect(url_for('admin_dashboard'))
@@ -225,7 +247,6 @@ def init_routes(app):
             form.employee_id.data = user['employee_id']
             form.title.data = user['title']
             form.reports_to.data = user['reports_to']
-            form.position_id.data = user['position_id']
             form.hire_date.data = user['hire_date']
             form.seniority_date.data = user['seniority_date']
             form.department.data = user['department']
@@ -237,10 +258,10 @@ def init_routes(app):
                 'employee_id': form.employee_id.data,
                 'title': form.title.data,
                 'reports_to': form.reports_to.data,
-                'position_id': form.position_id.data,
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
-                'department': form.department.data
+                'department': form.department.data,
+                'auth_user_id': form.auth_user_id.data
             }).eq('id', user_id).execute()
             flash('User updated successfully.', 'success')
             return redirect(url_for('admin_dashboard'))
@@ -308,9 +329,15 @@ def init_routes(app):
 
     @app.route('/download/<string:id>', methods=['GET'])
     def download_file(id):
-        file_data = app.supabase.table('electronic_services').select('file_name', 'file_content').eq('id', id).execute().data[0]
-        filename = file_data['file_name']
-        file_content = base64.b64decode(file_data['file_content'])
+        fillable = request.args.get('fillable', False)
+        if fillable:
+            file_data = app.supabase.table('electronic_services').select('file_name', 'fillable_file_content').eq('id', id).execute().data[0]
+            file_content = base64.b64decode(file_data['fillable_file_content'])
+            filename = "fillable_" + file_data['file_name']
+        else:
+            file_data = app.supabase.table('electronic_services').select('file_name', 'file_content').eq('id', id).execute().data[0]
+            file_content = base64.b64decode(file_data['file_content'])
+            filename = file_data['file_name']
 
         return send_file(
             io.BytesIO(file_content),
