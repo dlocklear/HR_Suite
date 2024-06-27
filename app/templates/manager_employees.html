@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <title>Manager's Employees</title>
+  </head>
+  <body>
+    <header class="container-fluid">
+      <div class="logo">
+        <img src="/static/img/LuxiumLogo.png" alt="Company Logo" />
+      </div>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li><a href="/logout" class="logout-btn">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="container">
+      <h1>My Employees</h1>
+      <div class="grid">
+        {% for employee in employees %}
+        <div class="tile">
+          <h2>Name</h2>
+          <p>{{ employee.name }}</p>
+          <h2>Email</h2>
+          <p>{{ employee.email }}</p>
+          <h2>Employee ID</h2>
+          <p>{{ employee.employee_id }}</p>
+          <h2>Department</h2>
+          <p>{{ employee.department }}</p>
+        </div>
+        {% endfor %} {% if not employees %}
+        <p>No employees found under your management.</p>
+        {% endif %}
+      </div>
+    </main>
+  </body>
+</html>
