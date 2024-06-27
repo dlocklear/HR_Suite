@@ -209,30 +209,6 @@ def init_routes(app):
 
         return render_template('myteam_employment.html', employees=employees)
 
-    @app.route('/manager/employment', methods=['GET'])
-    def manager_employees():
-        if 'user' not in session or session['user']['role'] != 'manager':
-            flash('You need to be a manager to access this page.')
-
-        # Assuming user_id is stored in session
-        auth_user_id = session['user']['id']
-        print(f"User ID: {auth_user_id}")  # Debugging line to check user_id
-
-        # Fetch employee_id using user_id
-        manager_response = app.supabase.table('users').select(
-            'employee_id').eq('auth_user_id', auth_user_id).execute()
-
-        manager_id = manager_response.data[0]['employee_id']
-        print(f"Manager id: {manager_id}")
-
-        # Fetch employees who report to this manager
-        response = app.supabase.from_('employees').select(
-            '*').eq('reports_to', manager_id).execute()
-
-        employees = response.data
-        print(f"Employees: {employees}")
-        return render_template('manager_employees.html', employees=employees)
-
     @app.route('/admin/add_user', methods=['GET', 'POST'])
     def add_user():
         if 'user' not in session or session['user']['role'] != 'SuperUser':
