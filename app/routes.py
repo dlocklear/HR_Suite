@@ -345,6 +345,39 @@ def init_routes(app):
             as_attachment=True
         )
 
+    @app.route('/route_for_signature/<string:id>', methods=['GET', 'POST'])
+    def route_for_signature(id):
+        if 'user' not in session:
+            flash('You need to be logged in to perform this action.')
+            return redirect(url_for('login'))
+
+        file_data = app.supabase.table('electronic_services').select('*').eq('id', id).execute().data[0]
+        file_name = file_data['file_name']
+        file_content = base64.b64decode(file_data['file_content'])
+
+        if request.method == 'POST':
+            recipient_email = request.form['email']
+            subject = f"Signature Required: {file_name}"
+            body = f"Please review and sign the document: {file_name}"
+            file_content_encoded = base64.b64encode(file_content).decode('utf-8')
+            
+            message = Mail(
+                from_email=app.config['FROM_EMAIL'],
+                to_emails=recipient_email,
+                subject=subject,
+                html_content=f"<p>{body}</p><p><a href='{url_for('download_file', id=id, _external=True)}'>Download PDF</a></p>"
+            )
+            try:
+                sg = SendGridAPIClient(app.config['SENDGRID_API_KEY'])
+                sg.send(message)
+                flash('PDF sent for signature.', 'success')
+            except Exception as e:
+                flash(f"An error occurred: {str(e)}", 'danger')
+            
+            return redirect(url_for('electronic_services'))
+
+        return render_template('route_for_signature.html', file_name=file_name, file_id=id)
+
 def generate_employee_id():
     return 'EMP' + str(uuid.uuid4())
 

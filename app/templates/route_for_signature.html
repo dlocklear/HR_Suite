@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route for Signature</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Route {{ file_name }} for Signature</h1>
+
+    <form action="{{ url_for('route_for_signature', id=file_id) }}" method="POST">
+        <div>
+            <label for="email">Recipient Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div>
+            <button type="submit">Send for Signature</button>
+        </div>
+    </form>
+</body>
+</html>
