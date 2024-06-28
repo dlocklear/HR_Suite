@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Action Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .form-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .form-section {
+            margin-bottom: 20px;
+        }
+        .form-section h3 {
+            margin-bottom: 10px;
+        }
+        .form-section div {
+            margin-bottom: 10px;
+        }
+        .form-section label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-section input, .form-section select, .form-section textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .form-section textarea {
+            height: 100px;
+        }
+        .form-section table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .form-section table, .form-section th, .form-section td {
+            border: 1px solid #ccc;
+        }
+        .form-section th, .form-section td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Personal Action Form</h1>
+        <form action="{{ url_for('fill_form', form_type='personal_action') }}" method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-section">
+                <h2>Business Unit: Luxium Solutions</h2>
+                <div>
+                    {{ form.employee_name.label }} {{ form.employee_name }}
+                </div>
+                <div>
+                    {{ form.effective_date.label }} {{ form.effective_date }}
+                </div>
+                <div>
+                    {{ form.position_id.label }} {{ form.position_id }}
+                </div>
+                <div>
+                    {{ form.full_address.label }} {{ form.full_address }}
+                </div>
+                <div>
+                    {{ form.associate_id.label }} {{ form.associate_id }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Transaction Codes</h3>
+                <div>
+                    {{ form.transaction_codes.label }} {{ form.transaction_codes }}
+                </div>
+
+                <h3>Reason Codes</h3>
+                <div>
+                    {{ form.reason_codes.label }} {{ form.reason_codes }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Required</h3>
+                <div>
+                    {{ form.position_title.label }} {{ form.position_title }}
+                </div>
+                <div>
+                    {{ form.dept_cost_ctr.label }} {{ form.dept_cost_ctr }}
+                </div>
+                <div>
+                    {{ form.supervisor_name.label }} {{ form.supervisor_name }}
+                </div>
+                <div>
+                    {{ form.supervisor_position.label }} {{ form.supervisor_position }}
+                </div>
+                <div>
+                    {{ form.pay_group.label }} {{ form.pay_group }}
+                </div>
+                <div>
+                    {{ form.org_code.label }} {{ form.org_code }}
+                </div>
+                <div>
+                    {{ form.hay_band.label }} {{ form.hay_band }}
+                </div>
+                <div>
+                    {{ form.yearly_salary.label }} {{ form.yearly_salary }}
+                </div>
+                <div>
+                    {{ form.hourly_rate.label }} {{ form.hourly_rate }}
+                </div>
+                <div>
+                    {{ form.std_eligibility.label }} {{ form.std_eligibility }}
+                </div>
+                <div>
+                    {{ form.weeks_full_pay.label }} {{ form.weeks_full_pay }}
+                </div>
+                <div>
+                    {{ form.weeks_60_pay.label }} {{ form.weeks_60_pay }}
+                </div>
+                <div>
+                    {{ form.pay_through.label }} {{ form.pay_through }}
+                </div>
+                <div>
+                    {{ form.additional_payments_due_employee.label }} {{ form.additional_payments_due_employee }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Current Information</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Position Title</th>
+                            <th>Dept/Cost Ctr</th>
+                            <th>Supervisor Name</th>
+                            <th>Supervisor Position</th>
+                            <th>Pay Group</th>
+                            <th>Org Code</th>
+                            <th>Hay Band</th>
+                            <th>Yearly Salary</th>
+                            <th>Hourly Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ form.current_position_title }}</td>
+                            <td>{{ form.current_dept_cost_ctr }}</td>
+                            <td>{{ form.current_supervisor_name }}</td>
+                            <td>{{ form.current_supervisor_position }}</td>
+                            <td>{{ form.current_pay_group }}</td>
+                            <td>{{ form.current_org_code }}</td>
+                            <td>{{ form.current_hay_band }}</td>
+                            <td>{{ form.current_yearly_salary }}</td>
+                            <td>{{ form.current_hourly_rate }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="form-section">
+                <h3>New Information</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Position Title</th>
+                            <th>Dept/Cost Ctr</th>
+                            <th>Supervisor Name</th>
+                            <th>Supervisor Position</th>
+                            <th>Pay Group</th>
+                            <th>Org Code</th>
+                            <th>Hay Band</th>
+                            <th>Yearly Salary</th>
+                            <th>Hourly Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ form.new_position_title }}</td>
+                            <td>{{ form.new_dept_cost_ctr }}</td>
+                            <td>{{ form.new_supervisor_name }}</td>
+                            <td>{{ form.new_supervisor_position }}</td>
+                            <td>{{ form.new_pay_group }}</td>
+                            <td>{{ form.new_org_code }}</td>
+                            <td>{{ form.new_hay_band }}</td>
+                            <td>{{ form.new_yearly_salary }}</td>
+                            <td>{{ form.new_hourly_rate }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="form-section">
+                <h3>Special Instructions</h3>
+                <div>
+                    {{ form.special_instructions.label }} {{ form.special_instructions }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Approval</h3>
+                <div>
+                    {{ form.approver.label }} {{ form.approver }}
+                </div>
+            </div>
+
+            <div>
+                {{ form.submit }}
+            </div>
+        </form>
+    </div>
+</body>
+</html>

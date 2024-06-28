@@ -4,13 +4,12 @@ from werkzeug.utils import secure_filename
 import os
 import base64
 from supabase import create_client, Client
-from app.forms import RegistrationForm, PasswordResetForm, UploadForm
+from app.forms import RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm
 from app import bcrypt
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import uuid
 import io
-from pdfrw import PdfReader, PdfWriter, PageMerge  # Correct import
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -300,22 +299,6 @@ def init_routes(app):
 
         return render_template('electronic_services.html', form=form, files=files)
 
-    @app.route('/convert_to_fillable/<string:id>', methods=['GET'])
-    def convert_to_fillable(id):
-        file_data = app.supabase.table('electronic_services').select('*').eq('id', id).execute().data[0]
-        file_content = base64.b64decode(file_data['file_content'])
-        
-        # Assuming convert_to_fillable_pdf function is updated to handle file content directly
-        fillable_file_content = convert_to_fillable_pdf(file_content)
-        fillable_file_content_encoded = base64.b64encode(fillable_file_content).decode('utf-8')
-
-        app.supabase.table('electronic_services').update({
-            'fillable_file_content': fillable_file_content_encoded
-        }).eq('id', id).execute()
-
-        flash('File converted to fillable PDF successfully.', 'success')
-        return redirect(url_for('electronic_services'))
-
     @app.route('/delete_file/<string:id>', methods=['POST'])
     def delete_file(id):
         if 'user' not in session:
@@ -329,15 +312,9 @@ def init_routes(app):
 
     @app.route('/download/<string:id>', methods=['GET'])
     def download_file(id):
-        fillable = request.args.get('fillable', False)
-        if fillable:
-            file_data = app.supabase.table('electronic_services').select('file_name', 'fillable_file_content').eq('id', id).execute().data[0]
-            file_content = base64.b64decode(file_data['fillable_file_content'])
-            filename = "fillable_" + file_data['file_name']
-        else:
-            file_data = app.supabase.table('electronic_services').select('file_name', 'file_content').eq('id', id).execute().data[0]
-            file_content = base64.b64decode(file_data['file_content'])
-            filename = file_data['file_name']
+        file_data = app.supabase.table('electronic_services').select('file_name', 'file_content').eq('id', id).execute().data[0]
+        file_content = base64.b64decode(file_data['file_content'])
+        filename = file_data['file_name']
 
         return send_file(
             io.BytesIO(file_content),
@@ -378,20 +355,45 @@ def init_routes(app):
 
         return render_template('route_for_signature.html', file_name=file_name, file_id=id)
 
-def generate_employee_id():
-    return 'EMP' + str(uuid.uuid4())
+    @app.route('/select_form')
+    def select_form():
+        if 'user' not in session:
+            flash('You need to be logged in to view this page.')
+            return redirect(url_for('login'))
+        return render_template('select_form.html')
 
-def convert_to_fillable_pdf(file_content):
-    template_pdf = PdfReader(io.BytesIO(file_content))
-    output_pdf = PdfWriter()
+    @app.route('/fill_form/<string:form_type>', methods=['GET', 'POST'])
+    def fill_form(form_type):
+        if 'user' not in session:
+            flash('You need to be logged in to view this page.')
+            return redirect(url_for('login'))
 
-    for page in template_pdf.pages:
-        page_merge = PageMerge(page)
-        page_merge.render()
-        output_pdf.addpage(page)
+        form_classes = {
+            'personal_action': PersonalActionForm,
+            'leave_request': LeaveRequestForm,
+            'personal_leave': PersonalLeaveForm,
+            'anonymous_complaint': AnonymousComplaintForm
+        }
 
-    output_stream = io.BytesIO()
-    output_pdf.write(output_stream)
-    output_stream.seek(0)
+        form_class = form_classes.get(form_type)
+        if not form_class:
+            flash('Invalid form type selected.', 'danger')
+            return redirect(url_for('select_form'))
 
-    return output_stream.read()
+        form = form_class()
+        if form.validate_on_submit():
+            form_data = {field.name: field.data for field in form}
+            form_data_encoded = base64.b64encode(str(form_data).encode('utf-8')).decode('utf-8')
+            user_id = session['user']['id']
+            
+            app.supabase.table('electronic_services').insert({
+                'user_id': user_id,
+                'form_type': form_type,
+                'form_data': form_data_encoded
+            }).execute()
+
+            flash('Form submitted successfully.', 'success')
+            return redirect(url_for('electronic_services'))
+        
+        template_name = f"{form_type}_form.html"
+        return render_template(template_name, form=form)

@@ -9,6 +9,8 @@
 <body>
     <h1>Electronic Services</h1>
 
+    <a href="{{ url_for('select_form') }}">Fill Out a Form</a>
+
     <form action="{{ url_for('electronic_services') }}" method="POST" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         <div>
@@ -28,11 +30,7 @@
                 <form action="{{ url_for('delete_file', id=file.id) }}" method="POST" style="display:inline;">
                     <button type="submit">Delete</button>
                 </form>
-                {% if file.fillable_file_content %}
-                    <a href="{{ url_for('download_file', id=file.id, fillable=True) }}" target="_blank">Download Fillable</a>
-                {% else %}
-                    <a href="{{ url_for('convert_to_fillable', id=file.id) }}">Convert to Fillable PDF</a>
-                {% endif %}
+                <a href="{{ url_for('route_for_signature', id=file.id) }}">Route for Signature</a>
             </li>
         {% endfor %}
     </ul>
