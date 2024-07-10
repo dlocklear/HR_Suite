@@ -47,6 +47,25 @@
             text-align: left;
         }
     </style>
+    <script>
+        async function fetchEmployeeDetails() {
+            const employeeName = document.getElementById('employee_name').value;
+            if (employeeName) {
+                const response = await fetch(`/get_employee_details?employee_name=${employeeName}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('position_title').value = data.position_title;
+                    document.getElementById('position_id').value = data.position_id;
+                    document.getElementById('department').value = data.department;
+                    document.getElementById('company_code').value = data.company_code;
+                    document.getElementById('pay_grade').value = data.pay_grade;
+                    document.getElementById('supervisor_position').value = data.supervisor_position;
+                } else {
+                    alert('Employee not found');
+                }
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="form-container">
@@ -64,12 +83,6 @@
                 </div>
                 <div>
                     {{ form.position_id.label }} {{ form.position_id }}
-                </div>
-                <div>
-                    {{ form.full_address.label }} {{ form.full_address }}
-                </div>
-                <div>
-                    {{ form.associate_id.label }} {{ form.associate_id }}
                 </div>
             </div>
 
@@ -91,7 +104,7 @@
                     {{ form.position_title.label }} {{ form.position_title }}
                 </div>
                 <div>
-                    {{ form.dept_cost_ctr.label }} {{ form.dept_cost_ctr }}
+                    {{ form.department.label }} {{ form.department }}
                 </div>
                 <div>
                     {{ form.supervisor_name.label }} {{ form.supervisor_name }}
@@ -100,22 +113,16 @@
                     {{ form.supervisor_position.label }} {{ form.supervisor_position }}
                 </div>
                 <div>
-                    {{ form.pay_group.label }} {{ form.pay_group }}
+                    {{ form.company_code.label }} {{ form.company_code }}
                 </div>
                 <div>
-                    {{ form.org_code.label }} {{ form.org_code }}
+                    {{ form.pay_grade.label }} {{ form.pay_grade }}
                 </div>
                 <div>
-                    {{ form.hay_band.label }} {{ form.hay_band }}
+                    {{ form.current_yearly_salary.label }} {{ form.current_yearly_salary }}
                 </div>
                 <div>
-                    {{ form.yearly_salary.label }} {{ form.yearly_salary }}
-                </div>
-                <div>
-                    {{ form.hourly_rate.label }} {{ form.hourly_rate }}
-                </div>
-                <div>
-                    {{ form.std_eligibility.label }} {{ form.std_eligibility }}
+                    {{ form.current_hourly_rate.label }} {{ form.current_hourly_rate }}
                 </div>
                 <div>
                     {{ form.weeks_full_pay.label }} {{ form.weeks_full_pay }}
@@ -137,12 +144,11 @@
                     <thead>
                         <tr>
                             <th>Position Title</th>
-                            <th>Dept/Cost Ctr</th>
+                            <th>Department</th>
                             <th>Supervisor Name</th>
                             <th>Supervisor Position</th>
                             <th>Pay Group</th>
-                            <th>Org Code</th>
-                            <th>Hay Band</th>
+                            <th>Pay Grade</th>
                             <th>Yearly Salary</th>
                             <th>Hourly Rate</th>
                         </tr>
@@ -150,12 +156,11 @@
                     <tbody>
                         <tr>
                             <td>{{ form.current_position_title }}</td>
-                            <td>{{ form.current_dept_cost_ctr }}</td>
+                            <td>{{ form.current_department }}</td>
                             <td>{{ form.current_supervisor_name }}</td>
                             <td>{{ form.current_supervisor_position }}</td>
                             <td>{{ form.current_pay_group }}</td>
-                            <td>{{ form.current_org_code }}</td>
-                            <td>{{ form.current_hay_band }}</td>
+                            <td>{{ form.current_pay_grade }}</td>
                             <td>{{ form.current_yearly_salary }}</td>
                             <td>{{ form.current_hourly_rate }}</td>
                         </tr>
@@ -169,12 +174,11 @@
                     <thead>
                         <tr>
                             <th>Position Title</th>
-                            <th>Dept/Cost Ctr</th>
+                            <th>Department</th>
                             <th>Supervisor Name</th>
                             <th>Supervisor Position</th>
                             <th>Pay Group</th>
-                            <th>Org Code</th>
-                            <th>Hay Band</th>
+                            <th>Pay Grade</th>
                             <th>Yearly Salary</th>
                             <th>Hourly Rate</th>
                         </tr>
@@ -182,12 +186,11 @@
                     <tbody>
                         <tr>
                             <td>{{ form.new_position_title }}</td>
-                            <td>{{ form.new_dept_cost_ctr }}</td>
+                            <td>{{ form.new_department }}</td>
                             <td>{{ form.new_supervisor_name }}</td>
                             <td>{{ form.new_supervisor_position }}</td>
                             <td>{{ form.new_pay_group }}</td>
-                            <td>{{ form.new_org_code }}</td>
-                            <td>{{ form.new_hay_band }}</td>
+                            <td>{{ form.new_pay_grade }}</td>
                             <td>{{ form.new_yearly_salary }}</td>
                             <td>{{ form.new_hourly_rate }}</td>
                         </tr>
@@ -216,3 +219,4 @@
     </div>
 </body>
 </html>
+

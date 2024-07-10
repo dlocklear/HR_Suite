@@ -9,8 +9,6 @@
 <body>
     <h1>Electronic Services</h1>
 
-    <a href="{{ url_for('select_form') }}">Fill Out a Form</a>
-
     <form action="{{ url_for('electronic_services') }}" method="POST" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         <div>
@@ -30,9 +28,25 @@
                 <form action="{{ url_for('delete_file', id=file.id) }}" method="POST" style="display:inline;">
                     <button type="submit">Delete</button>
                 </form>
-                <a href="{{ url_for('route_for_signature', id=file.id) }}">Route for Signature</a>
+                {% if file.fillable_file_content %}
+                    <a href="{{ url_for('download_file', id=file.id, fillable=True) }}" target="_blank">Download Fillable</a>
+                {% endif %}
             </li>
         {% endfor %}
     </ul>
+
+    <h2>Fill a Form</h2>
+    <form action="{{ url_for('fill_form', form_type='personal_action') }}" method="GET">
+        <button type="submit">Personal Action Form</button>
+    </form>
+    <form action="{{ url_for('fill_form', form_type='leave_request') }}" method="GET">
+        <button type="submit">Leave Request Form</button>
+    </form>
+    <form action="{{ url_for('fill_form', form_type='personal_leave') }}" method="GET">
+        <button type="submit">Personal Leave Form</button>
+    </form>
+    <form action="{{ url_for('fill_form', form_type='anonymous_complaint') }}" method="GET">
+        <button type="submit">Anonymous Complaint Form</button>
+    </form>
 </body>
 </html>

@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, render_template, request, redirect, session, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, session, url_for, flash, send_file, jsonify
 from werkzeug.utils import secure_filename
 import os
 import base64
@@ -10,6 +10,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import uuid
 import io
+from pdfrw import PdfReader, PdfWriter, PageMerge  # Correct import
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -246,6 +247,7 @@ def init_routes(app):
             form.employee_id.data = user['employee_id']
             form.title.data = user['title']
             form.reports_to.data = user['reports_to']
+            form.position_id.data = user['position_id']
             form.hire_date.data = user['hire_date']
             form.seniority_date.data = user['seniority_date']
             form.department.data = user['department']
@@ -257,6 +259,7 @@ def init_routes(app):
                 'employee_id': form.employee_id.data,
                 'title': form.title.data,
                 'reports_to': form.reports_to.data,
+                'position_id': form.position_id.data,
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
                 'department': form.department.data,
@@ -312,9 +315,15 @@ def init_routes(app):
 
     @app.route('/download/<string:id>', methods=['GET'])
     def download_file(id):
-        file_data = app.supabase.table('electronic_services').select('file_name', 'file_content').eq('id', id).execute().data[0]
-        file_content = base64.b64decode(file_data['file_content'])
-        filename = file_data['file_name']
+        fillable = request.args.get('fillable', False)
+        if fillable:
+            file_data = app.supabase.table('electronic_services').select('file_name', 'fillable_file_content').eq('id', id).execute().data[0]
+            file_content = base64.b64decode(file_data['fillable_file_content'])
+            filename = "fillable_" + file_data['file_name']
+        else:
+            file_data = app.supabase.table('electronic_services').select('file_name', 'file_content').eq('id', id).execute().data[0]
+            file_content = base64.b64decode(file_data['file_content'])
+            filename = file_data['file_name']
 
         return send_file(
             io.BytesIO(file_content),
@@ -322,44 +331,16 @@ def init_routes(app):
             as_attachment=True
         )
 
-    @app.route('/route_for_signature/<string:id>', methods=['GET', 'POST'])
-    def route_for_signature(id):
-        if 'user' not in session:
-            flash('You need to be logged in to perform this action.')
-            return redirect(url_for('login'))
-
-        file_data = app.supabase.table('electronic_services').select('*').eq('id', id).execute().data[0]
-        file_name = file_data['file_name']
-        file_content = base64.b64decode(file_data['file_content'])
-
-        if request.method == 'POST':
-            recipient_email = request.form['email']
-            subject = f"Signature Required: {file_name}"
-            body = f"Please review and sign the document: {file_name}"
-            file_content_encoded = base64.b64encode(file_content).decode('utf-8')
-            
-            message = Mail(
-                from_email=app.config['FROM_EMAIL'],
-                to_emails=recipient_email,
-                subject=subject,
-                html_content=f"<p>{body}</p><p><a href='{url_for('download_file', id=id, _external=True)}'>Download PDF</a></p>"
-            )
-            try:
-                sg = SendGridAPIClient(app.config['SENDGRID_API_KEY'])
-                sg.send(message)
-                flash('PDF sent for signature.', 'success')
-            except Exception as e:
-                flash(f"An error occurred: {str(e)}", 'danger')
-            
-            return redirect(url_for('electronic_services'))
-
-        return render_template('route_for_signature.html', file_name=file_name, file_id=id)
-
-    @app.route('/select_form')
+    @app.route('/select_form', methods=['GET', 'POST'])
     def select_form():
         if 'user' not in session:
             flash('You need to be logged in to view this page.')
             return redirect(url_for('login'))
+
+        if request.method == 'POST':
+            form_type = request.form.get('form_type')
+            return redirect(url_for('fill_form', form_type=form_type))
+
         return render_template('select_form.html')
 
     @app.route('/fill_form/<string:form_type>', methods=['GET', 'POST'])
@@ -377,23 +358,38 @@ def init_routes(app):
 
         form_class = form_classes.get(form_type)
         if not form_class:
-            flash('Invalid form type selected.', 'danger')
+            flash('Invalid form type selected.')
             return redirect(url_for('select_form'))
 
         form = form_class()
         if form.validate_on_submit():
-            form_data = {field.name: field.data for field in form}
-            form_data_encoded = base64.b64encode(str(form_data).encode('utf-8')).decode('utf-8')
-            user_id = session['user']['id']
-            
-            app.supabase.table('electronic_services').insert({
-                'user_id': user_id,
-                'form_type': form_type,
-                'form_data': form_data_encoded
-            }).execute()
+            # Handle form submission here
+            flash(f'{form_type.replace("_", " ").title()} submitted successfully.', 'success')
+            return redirect(url_for('dashboard'))
 
-            flash('Form submitted successfully.', 'success')
-            return redirect(url_for('electronic_services'))
-        
-        template_name = f"{form_type}_form.html"
-        return render_template(template_name, form=form)
+        return render_template(f'{form_type}_form.html', form=form)
+
+    @app.route('/get_employee_details', methods=['GET'])
+    def get_employee_details():
+        employee_name = request.args.get('employee_name')
+        if not employee_name:
+            return jsonify({'error': 'Employee name is required'}), 400
+
+        employee_data = app.supabase.table('employees').select('*').eq('name', employee_name).execute().data
+        if not employee_data:
+            return jsonify({'error': 'Employee not found'}), 404
+
+        employee = employee_data[0]
+        supervisor_data = app.supabase.table('employees').select('*').eq('employee_id', employee['reports_to']).execute().data
+        supervisor_position = supervisor_data[0]['title'] if supervisor_data else ''
+
+        result = {
+            'position_title': employee['title'],
+            'position_id': employee['position_id'],
+            'department': employee['department'],
+            'company_code': employee['company_code'],
+            'pay_grade': employee['pay_grade'],
+            'supervisor_position': supervisor_position
+        }
+
+        return jsonify(result)
