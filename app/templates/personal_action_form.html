@@ -76,7 +76,8 @@
             <div class="form-section">
                 <h2>Business Unit: Luxium Solutions</h2>
                 <div>
-                    {{ form.employee_name.label }} {{ form.employee_name }}
+                    {{ form.employee_name.label }}
+                    {{ form.employee_name(onchange="fetchEmployeeDetails()") }}
                 </div>
                 <div>
                     {{ form.effective_date.label }} {{ form.effective_date }}
@@ -101,22 +102,22 @@
             <div class="form-section">
                 <h3>Required</h3>
                 <div>
-                    {{ form.position_title.label }} {{ form.position_title }}
+                    {{ form.position_title.label }} {{ form.position_title(id='position_title') }}
                 </div>
                 <div>
-                    {{ form.department.label }} {{ form.department }}
+                    {{ form.department.label }} {{ form.department(id='department') }}
                 </div>
                 <div>
                     {{ form.supervisor_name.label }} {{ form.supervisor_name }}
                 </div>
                 <div>
-                    {{ form.supervisor_position.label }} {{ form.supervisor_position }}
+                    {{ form.supervisor_position.label }} {{ form.supervisor_position(id='supervisor_position') }}
                 </div>
                 <div>
-                    {{ form.company_code.label }} {{ form.company_code }}
+                    {{ form.company_code.label }} {{ form.company_code(id='company_code') }}
                 </div>
                 <div>
-                    {{ form.pay_grade.label }} {{ form.pay_grade }}
+                    {{ form.pay_grade.label }} {{ form.pay_grade(id='pay_grade') }}
                 </div>
                 <div>
                     {{ form.current_yearly_salary.label }} {{ form.current_yearly_salary }}
@@ -219,4 +220,3 @@
     </div>
 </body>
 </html>
-

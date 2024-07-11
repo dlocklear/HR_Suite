@@ -10,7 +10,6 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import uuid
 import io
-from pdfrw import PdfReader, PdfWriter, PageMerge  # Correct import
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -73,6 +72,7 @@ def init_routes(app):
                     'employee_id': form.employee_id.data,
                     'title': form.title.data,
                     'reports_to': form.reports_to.data,
+                    'position_id': form.position_id.data,
                     'hire_date': form.hire_date.data,
                     'seniority_date': form.seniority_date.data,
                     'department': form.department.data
@@ -247,7 +247,6 @@ def init_routes(app):
             form.employee_id.data = user['employee_id']
             form.title.data = user['title']
             form.reports_to.data = user['reports_to']
-            form.position_id.data = user['position_id']
             form.hire_date.data = user['hire_date']
             form.seniority_date.data = user['seniority_date']
             form.department.data = user['department']
@@ -259,7 +258,6 @@ def init_routes(app):
                 'employee_id': form.employee_id.data,
                 'title': form.title.data,
                 'reports_to': form.reports_to.data,
-                'position_id': form.position_id.data,
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
                 'department': form.department.data,
@@ -331,24 +329,8 @@ def init_routes(app):
             as_attachment=True
         )
 
-    @app.route('/select_form', methods=['GET', 'POST'])
-    def select_form():
-        if 'user' not in session:
-            flash('You need to be logged in to view this page.')
-            return redirect(url_for('login'))
-
-        if request.method == 'POST':
-            form_type = request.form.get('form_type')
-            return redirect(url_for('fill_form', form_type=form_type))
-
-        return render_template('select_form.html')
-
-    @app.route('/fill_form/<string:form_type>', methods=['GET', 'POST'])
+    @app.route('/fill_form/<form_type>', methods=['GET', 'POST'])
     def fill_form(form_type):
-        if 'user' not in session:
-            flash('You need to be logged in to view this page.')
-            return redirect(url_for('login'))
-
         form_classes = {
             'personal_action': PersonalActionForm,
             'leave_request': LeaveRequestForm,
@@ -358,14 +340,14 @@ def init_routes(app):
 
         form_class = form_classes.get(form_type)
         if not form_class:
-            flash('Invalid form type selected.')
-            return redirect(url_for('select_form'))
+            flash('Invalid form type.', 'danger')
+            return redirect(url_for('electronic_services'))
 
         form = form_class()
         if form.validate_on_submit():
-            # Handle form submission here
-            flash(f'{form_type.replace("_", " ").title()} submitted successfully.', 'success')
-            return redirect(url_for('dashboard'))
+            # Handle form submission logic here
+            flash('Form submitted successfully.', 'success')
+            return redirect(url_for('electronic_services'))
 
         return render_template(f'{form_type}_form.html', form=form)
 
@@ -375,21 +357,35 @@ def init_routes(app):
         if not employee_name:
             return jsonify({'error': 'Employee name is required'}), 400
 
-        employee_data = app.supabase.table('employees').select('*').eq('name', employee_name).execute().data
-        if not employee_data:
-            return jsonify({'error': 'Employee not found'}), 404
+        # Search for the employee in the database using case-insensitive partial match
+        try:
+            query = f"%{employee_name}%"
+            response = app.supabase.table('employees').select('*').ilike('name', query).execute()
+            employee_data = response.data
 
-        employee = employee_data[0]
-        supervisor_data = app.supabase.table('employees').select('*').eq('employee_id', employee['reports_to']).execute().data
-        supervisor_position = supervisor_data[0]['title'] if supervisor_data else ''
+            # Add debug logs to check the response
+            logging.debug(f"Query: {query}")
+            logging.debug(f"Response: {response}")
+            logging.debug(f"Employee data: {employee_data}")
 
-        result = {
-            'position_title': employee['title'],
-            'position_id': employee['position_id'],
-            'department': employee['department'],
-            'company_code': employee['company_code'],
-            'pay_grade': employee['pay_grade'],
-            'supervisor_position': supervisor_position
-        }
+            if not employee_data:
+                return jsonify({'error': 'Employee not found'}), 404
 
-        return jsonify(result)
+            # Assuming only one match is needed, take the first match
+            employee = employee_data[0]
+            supervisor_data = app.supabase.table('employees').select('*').eq('employee_id', employee['reports_to']).execute().data
+            supervisor_position = supervisor_data[0]['title'] if supervisor_data else ''
+
+            result = {
+                'position_title': employee['title'],
+                'position_id': employee['position_id'],
+                'department': employee['department'],
+                'company_code': employee['company_code'],
+                'pay_grade': employee['pay_grade'],
+                'supervisor_position': supervisor_position
+            }
+
+            return jsonify(result)
+        except Exception as e:
+            logging.error(f"Error fetching employee details: {e}")
+            return jsonify({'error': 'Internal server error'}), 500
