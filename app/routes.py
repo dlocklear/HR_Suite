@@ -66,7 +66,7 @@ def init_routes(app):
                 }).execute()
 
                 app.supabase.table('employees').insert({
-                    'name': form.name.data,
+                    'employee_name': form.name.data,
                     'email': form.email.data,
                     'auth_user_id': response.user.id,
                     'employee_id': form.employee_id.data,
@@ -75,7 +75,7 @@ def init_routes(app):
                     'position_id': form.position_id.data,
                     'hire_date': form.hire_date.data,
                     'seniority_date': form.seniority_date.data,
-                    'department': form.department.data
+                    'Department': form.department.data
                 }).execute()
 
                 message = Mail(
@@ -218,14 +218,14 @@ def init_routes(app):
         form = RegistrationForm()
         if form.validate_on_submit():
             app.supabase.table('employees').insert({
-                'name': form.name.data,
+                'employee_name': form.name.data,
                 'email': form.email.data,
                 'employee_id': form.employee_id.data,
                 'title': form.title.data,
                 'reports_to': form.reports_to.data,
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
-                'department': form.department.data,
+                'Department': form.department.data,
                 'auth_user_id': form.auth_user_id.data
             }).execute()
             flash('User added successfully.', 'success')
@@ -242,25 +242,25 @@ def init_routes(app):
         user = app.supabase.table('employees').select('*').eq('id', user_id).execute().data[0]
 
         if request.method == 'GET':
-            form.name.data = user['name']
+            form.name.data = user['employee_name']
             form.email.data = user['email']
             form.employee_id.data = user['employee_id']
             form.title.data = user['title']
             form.reports_to.data = user['reports_to']
             form.hire_date.data = user['hire_date']
             form.seniority_date.data = user['seniority_date']
-            form.department.data = user['department']
+            form.department.data = user['Department']
 
         if form.validate_on_submit():
             app.supabase.table('employees').update({
-                'name': form.name.data,
+                'employee_name': form.name.data,
                 'email': form.email.data,
                 'employee_id': form.employee_id.data,
                 'title': form.title.data,
                 'reports_to': form.reports_to.data,
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
-                'department': form.department.data,
+                'Department': form.department.data,
                 'auth_user_id': form.auth_user_id.data
             }).eq('id', user_id).execute()
             flash('User updated successfully.', 'success')
@@ -360,7 +360,7 @@ def init_routes(app):
         # Search for the employee in the database using case-insensitive partial match
         try:
             query = f"%{employee_name}%"
-            response = app.supabase.table('employees').select('*').ilike('name', query).execute()
+            response = app.supabase.table('employees').select('*').ilike('employee_name', query).execute()
             employee_data = response.data
 
             # Add debug logs to check the response
@@ -379,8 +379,8 @@ def init_routes(app):
             result = {
                 'position_title': employee['title'],
                 'position_id': employee['position_id'],
-                'department': employee['department'],
-                'company_code': employee['company_code'],
+                'department': employee['Department'],
+                'company_code': employee['Company_Code'],
                 'pay_grade': employee['pay_grade'],
                 'supervisor_position': supervisor_position
             }
