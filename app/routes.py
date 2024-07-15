@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, send_file
 from supabase import create_client
 from app.forms import RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm
 from app import bcrypt
@@ -12,7 +12,6 @@ import uuid
 import io
 
 logging.basicConfig(level=logging.DEBUG)
-
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
@@ -438,7 +437,7 @@ def init_routes(app):
 
             response = app.supabase.table('employees').select('*').ilike('employee_name', query).execute()
             logging.debug(f"Supabase response: {response}")
-        
+    
             if not response.data:
                 return jsonify({'error': 'Employee not found'}), 404
 
@@ -447,7 +446,7 @@ def init_routes(app):
 
             employee = employee_data[0]
             supervisor_data = app.supabase.table('employees').select(
-                '*').eq('employee_id', employee['reports_to']).execute().data
+               '*').eq('employee_id', employee['reports_to']).execute().data
             supervisor_position = supervisor_data[0]['title'] if supervisor_data else ''
 
             result = {
