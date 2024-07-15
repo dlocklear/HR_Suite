@@ -51,17 +51,22 @@
         async function fetchEmployeeDetails() {
             const employeeName = document.getElementById('employee_name').value;
             if (employeeName) {
-                const response = await fetch(`/get_employee_details?employee_name=${employeeName}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('position_title').value = data.position_title;
-                    document.getElementById('position_id').value = data.position_id;
-                    document.getElementById('department').value = data.department;
-                    document.getElementById('company_code').value = data.company_code;
-                    document.getElementById('pay_grade').value = data.pay_grade;
-                    document.getElementById('supervisor_position').value = data.supervisor_position;
-                } else {
-                    alert('Employee not found');
+                try {
+                    const response = await fetch(`/get_employee_details?employee_name=${employeeName}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(data);
+                        document.getElementById('position_title').value = data.position_title;
+                        document.getElementById('position_id').value = data.position_id;
+                        document.getElementById('department').value = data.department;
+                        document.getElementById('company_code').value = data.company_code;
+                        document.getElementById('pay_grade').value = data.pay_grade;
+                        document.getElementById('supervisor_position').value = data.supervisor_position;
+                    } else {
+                        alert('Employee not found');
+                    }
+                } catch (error) {
+                    console.error('Error fetching employee details:', error);
                 }
             }
         }
@@ -83,7 +88,7 @@
                     {{ form.effective_date.label }} {{ form.effective_date }}
                 </div>
                 <div>
-                    {{ form.position_id.label }} {{ form.position_id }}
+                    {{ form.position_id.label }} {{ form.position_id(id='position_id') }}
                 </div>
             </div>
 

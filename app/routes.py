@@ -1,13 +1,13 @@
 import logging
-from flask import Flask, render_template, request, redirect, session, url_for, flash, send_file, jsonify
-from werkzeug.utils import secure_filename
-import os
-import base64
-from supabase import create_client, Client
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from supabase import create_client
 from app.forms import RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm
 from app import bcrypt
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from werkzeug.utils import secure_filename
+import os
+import base64
 import uuid
 import io
 
@@ -75,7 +75,9 @@ def init_routes(app):
                     'position_id': form.position_id.data,
                     'hire_date': form.hire_date.data,
                     'seniority_date': form.seniority_date.data,
-                    'Department': form.department.data
+                    'Department': form.department.data,
+                    'Company_Code': form.company_code.data,
+                    'pay_grade': form.pay_grade.data
                 }).execute()
 
                 message = Mail(
@@ -226,7 +228,8 @@ def init_routes(app):
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
                 'Department': form.department.data,
-                'auth_user_id': form.auth_user_id.data
+                'Company_Code': form.company_code.data,
+                'pay_grade': form.pay_grade.data
             }).execute()
             flash('User added successfully.', 'success')
             return redirect(url_for('admin_dashboard'))
@@ -242,26 +245,29 @@ def init_routes(app):
         user = app.supabase.table('employees').select('*').eq('id', user_id).execute().data[0]
 
         if request.method == 'GET':
-            form.name.data = user['employee_name']
-            form.email.data = user['email']
-            form.employee_id.data = user['employee_id']
-            form.title.data = user['title']
-            form.reports_to.data = user['reports_to']
+            form.name.data = user['employee_name'].strip()
+            form.email.data = user['email'].strip()
+            form.employee_id.data = user['employee_id'].strip()
+            form.title.data = user['title'].strip()
+            form.reports_to.data = user['reports_to'].strip() if user['reports_to'] else ''
             form.hire_date.data = user['hire_date']
             form.seniority_date.data = user['seniority_date']
-            form.department.data = user['Department']
+            form.department.data = user['Department'].strip()
+            form.company_code.data = user['Company_Code'].strip()
+            form.pay_grade.data = user['pay_grade'].strip()
 
         if form.validate_on_submit():
             app.supabase.table('employees').update({
-                'employee_name': form.name.data,
-                'email': form.email.data,
-                'employee_id': form.employee_id.data,
-                'title': form.title.data,
-                'reports_to': form.reports_to.data,
+                'employee_name': form.name.data.strip(),
+                'email': form.email.data.strip(),
+                'employee_id': form.employee_id.data.strip(),
+                'title': form.title.data.strip(),
+                'reports_to': form.reports_to.data.strip() if form.reports_to.data else None,
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
-                'Department': form.department.data,
-                'auth_user_id': form.auth_user_id.data
+                'Department': form.department.data.strip(),
+                'Company_Code': form.company_code.data.strip(),
+                'pay_grade': form.pay_grade.data.strip()
             }).eq('id', user_id).execute()
             flash('User updated successfully.', 'success')
             return redirect(url_for('admin_dashboard'))
@@ -350,42 +356,48 @@ def init_routes(app):
             return redirect(url_for('electronic_services'))
 
         return render_template(f'{form_type}_form.html', form=form)
-
+    
     @app.route('/get_employee_details', methods=['GET'])
     def get_employee_details():
         employee_name = request.args.get('employee_name')
         if not employee_name:
             return jsonify({'error': 'Employee name is required'}), 400
 
-        # Search for the employee in the database using case-insensitive partial match
         try:
-            query = f"%{employee_name}%"
+            # Clean the employee name by stripping whitespaces and newline characters
+            cleaned_employee_name = employee_name.strip()
+            query = f"%{cleaned_employee_name}%"
+            logging.debug(f"Searching for employee with query: {query}")
+
             response = app.supabase.table('employees').select('*').ilike('employee_name', query).execute()
-            employee_data = response.data
-
-            # Add debug logs to check the response
-            logging.debug(f"Query: {query}")
-            logging.debug(f"Response: {response}")
-            logging.debug(f"Employee data: {employee_data}")
-
-            if not employee_data:
+            logging.debug(f"Supabase response: {response}")
+        
+            if not response.data:
                 return jsonify({'error': 'Employee not found'}), 404
 
-            # Assuming only one match is needed, take the first match
+            employee_data = response.data
+            logging.debug(f"Employee data response: {employee_data}")
+
             employee = employee_data[0]
-            supervisor_data = app.supabase.table('employees').select('*').eq('employee_id', employee['reports_to']).execute().data
-            supervisor_position = supervisor_data[0]['title'] if supervisor_data else ''
+            if employee.get('reports_to'):
+                supervisor_data = app.supabase.table('employees').select('title').eq('employee_id', employee['reports_to']).execute().data
+                supervisor_position = supervisor_data[0]['title'].strip() if supervisor_data else ''
+            else:
+                supervisor_position = ''
 
             result = {
-                'position_title': employee['title'],
-                'position_id': employee['position_id'],
-                'department': employee['Department'],
-                'company_code': employee['Company_Code'],
-                'pay_grade': employee['pay_grade'],
+                'position_title': employee['title'].strip(),
+                'position_id': employee['position_id'].strip(),
+                'department': employee['Department'].strip(),
+                'company_code': employee['Company_Code'].strip(),
+                'pay_grade': employee['pay_grade'].strip(),
                 'supervisor_position': supervisor_position
-            }
+        }
 
+            logging.debug(f"Resulting JSON: {result}")
             return jsonify(result)
         except Exception as e:
             logging.error(f"Error fetching employee details: {e}")
-            return jsonify({'error': 'Internal server error'}), 500
+            return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
+
+
