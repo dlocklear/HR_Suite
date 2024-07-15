@@ -13,8 +13,10 @@ import io
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
+
 
 def init_routes(app):
     @app.route('/')
@@ -51,7 +53,8 @@ def init_routes(app):
     def register():
         form = RegistrationForm()
         if form.validate_on_submit():
-            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            hashed_password = bcrypt.generate_password_hash(
+                form.password.data).decode('utf-8')
             response = app.supabase.auth.sign_up({
                 'email': form.email.data,
                 'password': form.password.data,
@@ -92,7 +95,8 @@ def init_routes(app):
                 except Exception as e:
                     print(e.message)
 
-                flash('Your account has been created! Wait for admin approval.', 'success')
+                flash(
+                    'Your account has been created! Wait for admin approval.', 'success')
                 return redirect(url_for('login'))
             else:
                 flash('Registration failed. Please try again.', 'danger')
@@ -116,7 +120,8 @@ def init_routes(app):
         if 'user' not in session or session['user']['role'] != 'SuperUser':
             flash('You need admin privileges to access this page.')
             return redirect(url_for('login'))
-        users = app.supabase.table('users').select('*').eq('status', 'pending').execute().data
+        users = app.supabase.table('users').select(
+            '*').eq('status', 'pending').execute().data
         return render_template('admin_dashboard.html', users=users)
 
     @app.route('/approve_user/<int:user_id>')
@@ -124,8 +129,10 @@ def init_routes(app):
         if 'user' not in session or session['user']['role'] != 'SuperUser':
             flash('You need admin privileges to access this page.')
             return redirect(url_for('login'))
-        user = app.supabase.table('users').select('*').eq('id', user_id).execute().data[0]
-        app.supabase.table('users').update({'status': 'approved'}).eq('id', user_id).execute()
+        user = app.supabase.table('users').select(
+            '*').eq('id', user_id).execute().data[0]
+        app.supabase.table('users').update(
+            {'status': 'approved'}).eq('id', user_id).execute()
         app.supabase.auth.update_user(
             user['auth_user_id'], {'data': {'status': 'approved'}}
         )
@@ -182,10 +189,11 @@ def init_routes(app):
         if 'user' not in session:
             flash('You need to be logged in to view this page.')
             return redirect(url_for('login'))
-        
+
         user_id = session['user']['id']
-        employee_data = app.supabase.table('employees').select('*').eq('auth_user_id', user_id).execute().data[0]
-        
+        employee_data = app.supabase.table('employees').select(
+            '*').eq('auth_user_id', user_id).execute().data[0]
+
         return render_template('employment.html', employee=employee_data)
 
     @app.route('/myteam_employment')
@@ -196,18 +204,23 @@ def init_routes(app):
 
         user_id = session['user']['id']
         user_role = session['user']['role']
-        
-        if user_role not in ['Manager', 'SuperUser']:  # Adjust roles as per your app's role structure
+
+        # Adjust roles as per your app's role structure
+        if user_role not in ['Manager', 'SuperUser']:
             flash('You do not have the necessary permissions to view this page.')
             return redirect(url_for('dashboard'))
 
         # Fetch the current user's employee_id
-        current_employee = app.supabase.table('employees').select('employee_id').eq('auth_user_id', user_id).execute().data[0]
+        current_employee = app.supabase.table('employees').select(
+            'employee_id').eq('auth_user_id', user_id).execute().data[0]
         current_employee_id = current_employee['employee_id']
-        
+
         # Fetch employees reporting to the current user
-        employees = app.supabase.table('employees').select('*').eq('reports_to', current_employee_id).execute().data
-        logging.debug(f"Employees reporting to {current_employee_id}: {employees}")  # Add this line to log the data
+        employees = app.supabase.table('employees').select(
+            '*').eq('reports_to', current_employee_id).execute().data
+        # Add this line to log the data
+        logging.debug(
+            f"Employees reporting to {current_employee_id}: {employees}")
 
         return render_template('myteam_employment.html', employees=employees)
 
@@ -218,22 +231,69 @@ def init_routes(app):
             return redirect(url_for('login'))
 
         form = RegistrationForm()
-        if form.validate_on_submit():
-            app.supabase.table('employees').insert({
-                'employee_name': form.name.data,
-                'email': form.email.data,
-                'employee_id': form.employee_id.data,
-                'title': form.title.data,
-                'reports_to': form.reports_to.data,
-                'hire_date': form.hire_date.data,
-                'seniority_date': form.seniority_date.data,
-                'Department': form.department.data,
-                'Company_Code': form.company_code.data,
-                'pay_grade': form.pay_grade.data
+        if request.method == 'POST':
+            employee_id = request.form['employee_id']
+            username = request.form['username']
+            password = request.form['password']
+            email = request.form['email']
+            role = request.form['role']
+            created_at = request.form['created_at']
+            updated_at = request.form['updated_at']
+            name = request.form['name']
+            status = request.form['status']
+
+            # Create user in supabase authentication
+            response = app.supabase.auth.sign_up(
+                credentials={"email": email, "password": password}
+            )
+
+            if 'error' in response:
+                flash('Error creating user: ' + response['error']['message'])
+                return redirect(url_for('admin_dashboard'))
+
+            # get user id from the authentication response
+            auth_id = response['user']['id']
+
+            # Insert user into users table
+            result = app.supabase.table('users').insert({
+                'email': email,
+                'employee_id': employee_id,
+                'username': username,
+                'password': password,
+                'role': role,
+                'created_at': created_at,
+                'updated_at': updated_at,
+                'auth_user_id': auth_id,
+                'status': status,
+                'Name': name
             }).execute()
-            flash('User added successfully.', 'success')
+
+            if 'error' in result:
+                flash('Error adding user to the database: ' +
+                      result['error']['message'])
+                return redirect(url_for('admin_dashboard'))
+
+            flash('User created successfully!')
             return redirect(url_for('admin_dashboard'))
+
         return render_template('add_user.html', form=form)
+
+        # form = RegistrationForm()
+        # if form.validate_on_submit():
+        #     app.supabase.table('employees').insert({
+        #         'employee_name': form.name.data,
+        #         'email': form.email.data,
+        #         'employee_id': form.employee_id.data,
+        #         'title': form.title.data,
+        #         'reports_to': form.reports_to.data,
+        #         'hire_date': form.hire_date.data,
+        #         'seniority_date': form.seniority_date.data,
+        #         'Department': form.department.data,
+        #         'auth_user_id': form.auth_user_id.data
+        #     }).execute()
+        #     flash('User added successfully.', 'success')
+        #     return redirect(url_for('admin_dashboard'))
+        # return render_template('add_user.html', form=form)
 
     @app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
     def edit_user(user_id):
@@ -242,7 +302,8 @@ def init_routes(app):
             return redirect(url_for('login'))
 
         form = RegistrationForm()
-        user = app.supabase.table('employees').select('*').eq('id', user_id).execute().data[0]
+        user = app.supabase.table('employees').select(
+            '*').eq('id', user_id).execute().data[0]
 
         if request.method == 'GET':
             form.name.data = user['employee_name'].strip()
@@ -285,10 +346,11 @@ def init_routes(app):
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file_content = file.read()
-                file_content_encoded = base64.b64encode(file_content).decode('utf-8')
+                file_content_encoded = base64.b64encode(
+                    file_content).decode('utf-8')
                 file_type = file.filename.rsplit('.', 1)[1].lower()
                 user_id = session['user']['id']
-                
+
                 app.supabase.table('electronic_services').insert({
                     'user_id': user_id,
                     'file_name': filename,
@@ -299,10 +361,12 @@ def init_routes(app):
                 flash('File uploaded and metadata saved successfully.', 'success')
                 return redirect(url_for('electronic_services'))
             else:
-                flash('Invalid file type. Only PDF, DOCX, and CSV are allowed.', 'danger')
+                flash(
+                    'Invalid file type. Only PDF, DOCX, and CSV are allowed.', 'danger')
 
         user_id = session['user']['id']
-        files = app.supabase.table('electronic_services').select('*').eq('user_id', user_id).execute().data
+        files = app.supabase.table('electronic_services').select(
+            '*').eq('user_id', user_id).execute().data
 
         return render_template('electronic_services.html', form=form, files=files)
 
@@ -312,7 +376,8 @@ def init_routes(app):
             flash('You need to be logged in to perform this action.')
             return redirect(url_for('login'))
 
-        app.supabase.table('electronic_services').delete().eq('id', id).execute()
+        app.supabase.table('electronic_services').delete().eq(
+            'id', id).execute()
 
         flash('File deleted successfully.', 'success')
         return redirect(url_for('electronic_services'))
@@ -321,11 +386,13 @@ def init_routes(app):
     def download_file(id):
         fillable = request.args.get('fillable', False)
         if fillable:
-            file_data = app.supabase.table('electronic_services').select('file_name', 'fillable_file_content').eq('id', id).execute().data[0]
+            file_data = app.supabase.table('electronic_services').select(
+                'file_name', 'fillable_file_content').eq('id', id).execute().data[0]
             file_content = base64.b64decode(file_data['fillable_file_content'])
             filename = "fillable_" + file_data['file_name']
         else:
-            file_data = app.supabase.table('electronic_services').select('file_name', 'file_content').eq('id', id).execute().data[0]
+            file_data = app.supabase.table('electronic_services').select(
+                'file_name', 'file_content').eq('id', id).execute().data[0]
             file_content = base64.b64decode(file_data['file_content'])
             filename = file_data['file_name']
 
@@ -379,11 +446,9 @@ def init_routes(app):
             logging.debug(f"Employee data response: {employee_data}")
 
             employee = employee_data[0]
-            if employee.get('reports_to'):
-                supervisor_data = app.supabase.table('employees').select('title').eq('employee_id', employee['reports_to']).execute().data
-                supervisor_position = supervisor_data[0]['title'].strip() if supervisor_data else ''
-            else:
-                supervisor_position = ''
+            supervisor_data = app.supabase.table('employees').select(
+                '*').eq('employee_id', employee['reports_to']).execute().data
+            supervisor_position = supervisor_data[0]['title'] if supervisor_data else ''
 
             result = {
                 'position_title': employee['title'].strip(),
