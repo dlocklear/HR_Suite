@@ -1,31 +1,36 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, TextAreaField, DateField, SubmitField, HiddenField, PasswordField
-from wtforms.validators import DataRequired, Email, EqualTo
+from wtforms.validators import DataRequired, Email, EqualTo, Length
 
 
 class RegistrationForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
+    name = StringField('Name', validators=[
+                       DataRequired(), Length(min=2, max=50)])
     user_id = StringField('User ID', validators=[DataRequired()])
-    username = StringField('Username', validators=[DataRequired()])
+    username = StringField('Username', validators=[
+                           DataRequired(), Length(min=2, max=20)])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[
+                             DataRequired(), Length(min=6)])
     confirm_password = PasswordField('Confirm Password', validators=[
                                      DataRequired(), EqualTo('password')])
-    role = StringField('Role', validators=[DataRequired()])
+    role = SelectField('Role', choices=[
+                       ('user', 'User'), ('admin', 'Admin')], validators=[DataRequired()])
     employee_id = StringField('Employee ID', validators=[DataRequired()])
     title = StringField('Title', validators=[DataRequired()])
     reports_to = StringField('Reports To', validators=[DataRequired()])
     position_id = StringField('Position ID', validators=[DataRequired()])
     hire_date = DateField('Hire Date', format='%Y-%m-%d',
                           validators=[DataRequired()])
-    created_at = DateField('Created at', format='%Y-%m-%d',
+    created_at = DateField('Created At', format='%Y-%m-%d',
                            validators=[DataRequired()])
-    updated_at = DateField('Updated at', format='%Y-%m-%d',
+    updated_at = DateField('Updated At', format='%Y-%m-%d',
                            validators=[DataRequired()])
     seniority_date = DateField(
         'Seniority Date', format='%Y-%m-%d', validators=[DataRequired()])
     department = StringField('Department', validators=[DataRequired()])
-    status = StringField('Status', validators=[DataRequired()])
+    status = SelectField('Status', choices=[
+                         ('active', 'Active'), ('inactive', 'Inactive')], validators=[DataRequired()])
     submit = SubmitField('Register')
 
 
