@@ -13,6 +13,7 @@ import io
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
 
@@ -251,7 +252,7 @@ def init_routes(app):
                 return redirect(url_for('admin_dashboard'))
 
             # get user id from the authentication response
-            auth_id = response['user']['id']
+            auth_id = app.supabase.auth.admin.getUserById(1)
 
             # Insert user into users table
             result = app.supabase.table('users').insert({
@@ -270,6 +271,25 @@ def init_routes(app):
             if 'error' in result:
                 flash('Error adding user to the database: ' +
                       result['error']['message'])
+                return redirect(url_for('admin_dashboard'))
+
+            message = Mail(
+                from_email=email,
+                to_emails=email,
+                subject='Welcome to HR Suite',
+                html_content=f"""
+                <p> Hello {name}, </p>
+                <p>Your account has been created successfully. Here are your login details:</p>
+                <p>Email: {email}</p>
+                <p>Password: {password}</p>
+                <p>Please change your password after logging in for the first time.</p>
+                """
+            )
+
+            try:
+                app.sendgrid_client.send(message)
+            except Exception as e:
+                flash(f"Failed to send email: {str(e)}")
                 return redirect(url_for('admin_dashboard'))
 
             flash('User created successfully!')
@@ -309,7 +329,8 @@ def init_routes(app):
             form.email.data = user['email'].strip()
             form.employee_id.data = user['employee_id'].strip()
             form.title.data = user['title'].strip()
-            form.reports_to.data = user['reports_to'].strip() if user['reports_to'] else ''
+            form.reports_to.data = user['reports_to'].strip(
+            ) if user['reports_to'] else ''
             form.hire_date.data = user['hire_date']
             form.seniority_date.data = user['seniority_date']
             form.department.data = user['Department'].strip()
@@ -422,7 +443,7 @@ def init_routes(app):
             return redirect(url_for('electronic_services'))
 
         return render_template(f'{form_type}_form.html', form=form)
-    
+
     @app.route('/get_employee_details', methods=['GET'])
     def get_employee_details():
         employee_name = request.args.get('employee_name')
@@ -435,9 +456,10 @@ def init_routes(app):
             query = f"%{cleaned_employee_name}%"
             logging.debug(f"Searching for employee with query: {query}")
 
-            response = app.supabase.table('employees').select('*').ilike('employee_name', query).execute()
+            response = app.supabase.table('employees').select(
+                '*').ilike('employee_name', query).execute()
             logging.debug(f"Supabase response: {response}")
-    
+
             if not response.data:
                 return jsonify({'error': 'Employee not found'}), 404
 
@@ -446,7 +468,7 @@ def init_routes(app):
 
             employee = employee_data[0]
             supervisor_data = app.supabase.table('employees').select(
-               '*').eq('employee_id', employee['reports_to']).execute().data
+                '*').eq('employee_id', employee['reports_to']).execute().data
             supervisor_position = supervisor_data[0]['title'] if supervisor_data else ''
 
             result = {
@@ -456,12 +478,10 @@ def init_routes(app):
                 'company_code': employee['Company_Code'].strip(),
                 'pay_grade': employee['pay_grade'].strip(),
                 'supervisor_position': supervisor_position
-        }
+            }
 
             logging.debug(f"Resulting JSON: {result}")
             return jsonify(result)
         except Exception as e:
             logging.error(f"Error fetching employee details: {e}")
             return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
-
-
