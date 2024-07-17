@@ -1,0 +1,105 @@
+@import url("https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css");
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  align-items: flex-start; /* Align content to the top */
+  justify-content: center;
+  background-color: #333; /* Dark background */
+  color: #fff; /* Light text for contrast */
+  font-family: Arial, sans-serif; /* Ensure consistent font */
+}
+
+body {
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 22rem; /* Adjusted for visibility */
+  padding: 2rem;
+  background: #444; /* Slightly lighter dark background */
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.title-bar {
+  background-color: #555;
+  padding: 1rem;
+  border-radius: 8px 8px 0 0;
+  text-align: center;
+  margin-bottom: 1rem; /* Margin for spacing */
+}
+
+.title-bar h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.5rem; /* Font size for title */
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem; /* Spacing between rows */
+}
+
+.form-group {
+  flex: 1;
+  margin-right: 1rem;
+}
+
+.form-group:last-child {
+  margin-right: 0;
+}
+
+.add-user-form input[type="text"],
+.add-user-form input[type="password"],
+.add-user-form input[type="email"],
+.add-user-form input[type="date"],
+.add-user-form select {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff; /* White background for inputs */
+  color: #000; /* Black text for inputs */
+  font-size: 1rem; /* Consistent font size */
+}
+
+.add-user-form label {
+  margin-bottom: 0.25rem; /* Adjusted margin for label */
+  display: block;
+  color: #fff; /* White text for labels */
+  font-size: 1rem; /* Consistent font size */
+}
+
+.add-user-form button {
+  width: 100%;
+  padding: 1rem;
+  margin-top: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem; /* Consistent font size */
+}
+
+.add-user-form button:hover {
+  background-color: #0056b3;
+}
+
+.flash-messages p {
+  color: red;
+  text-align: center;
+  font-weight: bold;
+}
