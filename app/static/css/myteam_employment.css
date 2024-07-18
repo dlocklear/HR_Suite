@@ -1,0 +1,129 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background-color: #f4f4f9; /* Light background for the entire page */
+  color: #333;
+  font-family: "Arial", sans-serif; /* Ensure consistent font family */
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background-color: #ffffff;
+  color: #fff;
+  padding: 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 4px solid #007bff;
+}
+
+header .logo img {
+  max-height: 50px;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  margin: 0 1rem;
+}
+
+nav ul li a {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+main {
+  flex: 1;
+  padding: 2rem;
+}
+
+.title-bar {
+  text-align: center;
+  margin-bottom: 1rem; /* Added margin bottom for spacing */
+}
+
+.title-bar h1 {
+  margin: 0;
+  font-size: 2rem; /* Font size for title */
+  font-weight: bold; /* Make the text bold */
+  color: #007bff; /* Ensure the text color matches the rest */
+}
+
+h1,
+h2,
+h3 {
+  color: #007bff;
+  font-family: "Arial", sans-serif; /* Ensure consistent font family */
+  font-weight: normal; /* Adjust font weight if necessary */
+}
+
+h1 {
+  font-size: 2rem; /* Adjust font size if necessary */
+}
+
+h2 {
+  font-size: 1.5rem; /* Adjust font size if necessary */
+}
+
+h3 {
+  font-size: 1.25rem; /* Adjust font size if necessary */
+}
+
+button,
+.button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+button:hover,
+.button:hover {
+  background-color: #0056b3;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+table th,
+table td {
+  padding: 0.5rem;
+  text-align: left;
+  border: 1px solid #ccc;
+}
+
+table th {
+  background-color: #007bff;
+  color: #fff;
+}
+
+table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.container-fluid {
+  width: 100%;
+  padding: 0 2rem;
+}

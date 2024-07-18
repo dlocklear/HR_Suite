@@ -1,37 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Team Employment</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <h1>Team Members Reporting to You</h1>
-
-    <table>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/myteam_employment.css') }}"
+    />
+  </head>
+  <body>
+    <header class="container-fluid">
+      <div class="logo">
+        <img src="/static/img/LuxiumLogo.png" alt="Company Logo" />
+      </div>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li><a href="/logout" class="logout-btn">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="container">
+      <div class="title-bar">
+        <h1>Team Members Reporting to You</h1>
+      </div>
+      <table>
         <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Title</th>
-                <th>Department</th>
-                <th>Hire Date</th>
-                <th>Seniority Date</th>
-            </tr>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Title</th>
+            <th>Department</th>
+            <th>Hire Date</th>
+            <th>Seniority Date</th>
+          </tr>
         </thead>
         <tbody>
-            {% for employee in employees %}
-            <tr>
-                <td>{{ employee.name }}</td>
-                <td>{{ employee.email }}</td>
-                <td>{{ employee.title }}</td>
-                <td>{{ employee.Department }}</td>
-                <td>{{ employee.hire_date }}</td>
-                <td>{{ employee.Seniority_Date }}</td>
-            </tr>
-            {% endfor %}
+          {% for employee in employees %}
+          <tr>
+            <td>{{ employee.name }}</td>
+            <td>{{ employee.email }}</td>
+            <td>{{ employee.title }}</td>
+            <td>{{ employee.Department }}</td>
+            <td>{{ employee.hire_date }}</td>
+            <td>{{ employee.Seniority_Date }}</td>
+          </tr>
+          {% endfor %}
         </tbody>
-    </table>
-</body>
+      </table>
+    </main>
+  </body>
 </html>

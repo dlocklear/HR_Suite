@@ -1,0 +1,110 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background-color: #f4f4f9; /* Light background for the entire page */
+  color: #333;
+  font-family: "Arial", sans-serif; /* Ensure consistent font family */
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background-color: #ffffff;
+  color: #fff;
+  padding: 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 4px solid #007bff;
+}
+
+header .logo img {
+  max-height: 50px;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  margin: 0 1rem;
+}
+
+nav ul li a {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+main {
+  flex: 1;
+  padding: 2rem;
+}
+
+h1 {
+  color: #007bff;
+  font-family: "Arial", sans-serif; /* Ensure consistent font family */
+  font-weight: bold; /* Make the text bold */
+  font-size: 2rem; /* Adjust font size if necessary */
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tile {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  flex: 1 1 calc(33.333% - 1rem); /* Adjust the width as needed */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tile h2 {
+  margin-top: 0;
+  color: #007bff;
+  font-size: 1.25rem;
+}
+
+.tile p {
+  margin: 0;
+  color: #333;
+}
+
+button,
+.button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+button:hover,
+.button:hover {
+  background-color: #0056b3;
+}
+
+.container-fluid {
+  width: 100%;
+  padding: 0 2rem;
+}
