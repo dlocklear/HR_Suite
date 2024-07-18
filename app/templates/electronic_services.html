@@ -1,52 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Electronic Services</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <h1>Electronic Services</h1>
-
-    <form action="{{ url_for('electronic_services') }}" method="POST" enctype="multipart/form-data">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/electronic_services.css') }}"
+    />
+  </head>
+  <body>
+    <header class="container-fluid">
+      <div class="logo">
+        <img src="/static/img/LuxiumLogo.png" alt="Company Logo" />
+      </div>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li><a href="/logout" class="logout-btn">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="container">
+      <h1>Electronic Services</h1>
+      <form
+        action="{{ url_for('electronic_services') }}"
+        method="POST"
+        enctype="multipart/form-data"
+        class="form-group"
+      >
         {{ form.hidden_tag() }}
-        <div>
-            {{ form.file.label }}
-            {{ form.file }}
-        </div>
-        <div>
-            {{ form.submit }}
-        </div>
-    </form>
+        <div class="form-field">{{ form.file.label }} {{ form.file }}</div>
+        <div class="form-field">{{ form.submit(class="button primary") }}</div>
+      </form>
 
-    <h2>Uploaded Files</h2>
-    <ul>
+      <h2>Uploaded Files</h2>
+      <ul>
         {% for file in files %}
-            <li>
-                <a href="{{ url_for('download_file', id=file.id) }}">{{ file.file_name }}</a>
-                <form action="{{ url_for('delete_file', id=file.id) }}" method="POST" style="display:inline;">
-                    <button type="submit">Delete</button>
-                </form>
-                {% if file.fillable_file_content %}
-                    <a href="{{ url_for('download_file', id=file.id, fillable=True) }}" target="_blank">Download Fillable</a>
-                {% endif %}
-            </li>
+        <li>
+          <a href="{{ url_for('download_file', id=file.id) }}"
+            >{{ file.file_name }}</a
+          >
+          <form
+            action="{{ url_for('delete_file', id=file.id) }}"
+            method="POST"
+            style="display: inline"
+          >
+            <button type="submit" class="button danger">Delete</button>
+          </form>
+          {% if file.fillable_file_content %}
+          <a
+            href="{{ url_for('download_file', id=file.id, fillable=True) }}"
+            target="_blank"
+            class="button"
+            >Download Fillable</a
+          >
+          {% endif %}
+        </li>
         {% endfor %}
-    </ul>
+      </ul>
 
-    <h2>Fill a Form</h2>
-    <form action="{{ url_for('fill_form', form_type='personal_action') }}" method="GET">
-        <button type="submit">Personal Action Form</button>
-    </form>
-    <form action="{{ url_for('fill_form', form_type='leave_request') }}" method="GET">
-        <button type="submit">Leave Request Form</button>
-    </form>
-    <form action="{{ url_for('fill_form', form_type='personal_leave') }}" method="GET">
-        <button type="submit">Personal Leave Form</button>
-    </form>
-    <form action="{{ url_for('fill_form', form_type='anonymous_complaint') }}" method="GET">
-        <button type="submit">Anonymous Complaint Form</button>
-    </form>
-</body>
+      <h2>Fill a Form</h2>
+      <div class="form-actions">
+        <form
+          action="{{ url_for('fill_form', form_type='personal_action') }}"
+          method="GET"
+        >
+          <button type="submit" class="button">Personal Action Form</button>
+        </form>
+        <form
+          action="{{ url_for('fill_form', form_type='leave_request') }}"
+          method="GET"
+        >
+          <button type="submit" class="button">Leave Request Form</button>
+        </form>
+        <form
+          action="{{ url_for('fill_form', form_type='personal_leave') }}"
+          method="GET"
+        >
+          <button type="submit" class="button">Personal Leave Form</button>
+        </form>
+        <form
+          action="{{ url_for('fill_form', form_type='anonymous_complaint') }}"
+          method="GET"
+        >
+          <button type="submit" class="button">Anonymous Complaint Form</button>
+        </form>
+      </div>
+    </main>
+  </body>
 </html>
