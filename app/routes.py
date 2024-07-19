@@ -3,9 +3,6 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from supabase import create_client
 from app.forms import RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm
 from app import bcrypt
-from app.utils.email_utils import send_confirmation_email
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 from werkzeug.utils import secure_filename
 import os
 import base64
@@ -83,18 +80,6 @@ def init_routes(app):
                     'Company_Code': form.company_code.data,
                     'pay_grade': form.pay_grade.data
                 }).execute()
-
-                message = Mail(
-                    from_email=app.config['FROM_EMAIL'],
-                    to_emails=form.email.data,
-                    subject='Welcome to HR Suite',
-                    html_content='<strong>Your account has been created! Wait for admin approval.</strong>'
-                )
-                try:
-                    sg = SendGridAPIClient(app.config['SENDGRID_API_KEY'])
-                    sg.send(message)
-                except Exception as e:
-                    print(e.message)
 
                 flash(
                     'Your account has been created! Wait for admin approval.', 'success')
@@ -228,55 +213,72 @@ def init_routes(app):
     @app.route('/admin/add_user', methods=['GET', 'POST'])
     def add_user():
         form = RegistrationForm()
-        print(request.form)
         if form.validate_on_submit():
-            print("form validated successfully")  # debug statement
-            response = app.supabase.auth.sign_up({
-                'email': form.email.data,
-                'password': form.email.data,
-            })
-            if response.user:
-                print("Supabase user created successfully")  # Debug statement
-                hashed_password = bcrypt.generate_password_hash(
-                    form.password.data).decode('utf-8')
-                app.supabase.table('users').insert({
-                    'name': form.name.data,
-                    'email': form.email.data,
-                    'password': hashed_password,
-                    'status': 'active',
-                    'auth_user_id': form.response.user.id,
-                    'role': form.role.data,
-                }).execute()
+            # Extract data
+            name = form.name.data
+            user_id = form.user_id.data
+            username = form.username.data
+            email = form.email.data
+            password = form.password.data
+            role = form.role.data
+            employee_id = form.employee_id.data
+            title = form.title.data
+            reports_to = form.reports_to.data
+            position_id = form.position_id.data
+            hire_date = form.hire_date.data
+            created_at = form.created_at.data
+            updated_at = form.updated_at.data
+            seniority_date = form.seniority_date.data
+            department = form.department.data
+            status = form.status.data
 
-                app.supabase.table('employees').insert({
-                    'employee_name': form.name.data,
-                    'email': form.email.data,
-                    'auth_user_id': response.user.id,
-                    'employee_id': form.employee_id.data,
-                    'title': form.title.data,
-                    'reports_to': form.reports_to.data,
-                    'position_id': form.position_id.data,
-                    'hire_date': form.hire_date.data,
-                    'seniority_date': form.seniority_date.data,
-                    'Department': form.department.data,
-                    'Company_Code': form.company_code.data,
-                    'pay_grade': form.pay_grade.data
-                }).execute()
+            # Hash password
+            hashed_password = bcrypt.generate_password_hash(
+                password).decode('utf-8')
 
-                html_content = f"<strong>Welcome {form.name.data} to our platform!</strong>"
-                send_confirmation_email(
-                    app.sendgrid, app.config['email'], form.email.data, "Welcome!", html_content)
+            # Prepare user data for supabase
+            user_data = {
+                "name": name,
+                "user_id": user_id,
+                "username": username,
+                "email": email,
+                "password": hashed_password,
+                "role": role,
+                "employee_id": employee_id,
+                "title": title,
+                "reports_to": reports_to,
+                "position_id": position_id,
+                "hire_date": hire_date,
+                "created_at": created_at,
+                "updated_at": updated_at,
+                "seniority_date": seniority_date,
+                "department": department,
+                "status": status
+            }
 
-                flash('User added successfully!', 'success')
-                return redirect(url_for('admin_dashboard'))
-            else:
-                print("Error creating supabase user")
-                flash('Error adding uuser. Please try again.', 'danger')
-        else:
-            print("form validation failed")  # debug statement
-            print(form.errors)  # print form errors for debugging
+            # Insert user data into supabase
+            try:
+                response = app.supabase.table(
+                    "users").insert({
+                        "user_id": user_id,
+                        'employee_id': employee_id,
+                        'username': username,
+                        'email': email,
+                        'role': role,
+                        'created_at': created_at,
+                        'updated_at': updated_at,
+                        'status': status,
+                        'Name': name,
+                    }).execute()
+                if response.status_code == 201:
+                    flash("User added successfully!", "success")
+                    return redirect(url_for('routes.add_user'))
+                else:
+                    flash("Failed to add user. Please try again.", "danger")
+            except Exception as e:
+                flash(f"An error occurred: {e}", "danger")
 
-        return render_template('add_user.html', title='Add User', form=form)
+        return render_template('add_user.html', form=form)
 
     @app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
     def edit_user(user_id):
