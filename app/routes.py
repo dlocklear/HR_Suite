@@ -447,5 +447,5 @@ def init_routes(app):
             logging.debug(f"Resulting JSON: {result}")
             return jsonify(result)
         except Exception as e:
-            logging.error(f"Error fetching employee details: {e}")
+            logging.error(f"Error fetching employee details: {e}", exc_info=True)
             return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
