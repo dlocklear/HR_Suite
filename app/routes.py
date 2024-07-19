@@ -3,14 +3,17 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from supabase import create_client
 from app.forms import RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm
 from app import bcrypt
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from werkzeug.utils import secure_filename
 import os
 import base64
 import uuid
 import io
+import traceback
+import json
 
 logging.basicConfig(level=logging.DEBUG)
-
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
@@ -76,10 +79,22 @@ def init_routes(app):
                     'position_id': form.position_id.data,
                     'hire_date': form.hire_date.data,
                     'seniority_date': form.seniority_date.data,
-                    'Department': form.department.data,
-                    'Company_Code': form.company_code.data,
+                    'department': form.department.data,
+                    'company_code': form.company_code.data,
                     'pay_grade': form.pay_grade.data
                 }).execute()
+
+                message = Mail(
+                    from_email=app.config['FROM_EMAIL'],
+                    to_emails=form.email.data,
+                    subject='Welcome to HR Suite',
+                    html_content='<strong>Your account has been created! Wait for admin approval.</strong>'
+                )
+                try:
+                    sg = SendGridAPIClient(app.config['SENDGRID_API_KEY'])
+                    sg.send(message)
+                except Exception as e:
+                    print(e.message)
 
                 flash(
                     'Your account has been created! Wait for admin approval.', 'success')
@@ -212,73 +227,74 @@ def init_routes(app):
 
     @app.route('/admin/add_user', methods=['GET', 'POST'])
     def add_user():
+        if 'user' not in session or session['user']['role'] != 'SuperUser':
+            flash('You need admin privileges to access this page.')
+            return redirect(url_for('login'))
+
         form = RegistrationForm()
-        if form.validate_on_submit():
-            # Extract data
-            name = form.name.data
-            user_id = form.user_id.data
-            username = form.username.data
-            email = form.email.data
-            password = form.password.data
-            role = form.role.data
-            employee_id = form.employee_id.data
-            title = form.title.data
-            reports_to = form.reports_to.data
-            position_id = form.position_id.data
-            hire_date = form.hire_date.data
-            created_at = form.created_at.data
-            updated_at = form.updated_at.data
-            seniority_date = form.seniority_date.data
-            department = form.department.data
-            status = form.status.data
+        if request.method == 'POST':
+            employee_id = request.form['employee_id']
+            username = request.form['username']
+            password = request.form['password']
+            email = request.form['email']
+            role = request.form['role']
+            created_at = request.form['created_at']
+            updated_at = request.form['updated_at']
+            name = request.form['name']
+            status = request.form['status']
 
-            # Hash password
-            hashed_password = bcrypt.generate_password_hash(
-                password).decode('utf-8')
+            # Create user in supabase authentication
+            response = app.supabase.auth.sign_up(
+                credentials={"email": email, "password": password}
+            )
 
-            # Prepare user data for supabase
-            user_data = {
-                "name": name,
-                "user_id": user_id,
-                "username": username,
-                "email": email,
-                "password": hashed_password,
-                "role": role,
-                "employee_id": employee_id,
-                "title": title,
-                "reports_to": reports_to,
-                "position_id": position_id,
-                "hire_date": hire_date,
-                "created_at": created_at,
-                "updated_at": updated_at,
-                "seniority_date": seniority_date,
-                "department": department,
-                "status": status
-            }
+            if 'error' in response:
+                flash('Error creating user: ' + response['error']['message'])
+                return redirect(url_for('admin_dashboard'))
 
-            # Insert user data into supabase
-            try:
-                response = app.supabase.table(
-                    "users").insert({
-                        "user_id": user_id,
-                        'employee_id': employee_id,
-                        'username': username,
-                        'email': email,
-                        'role': role,
-                        'created_at': created_at,
-                        'updated_at': updated_at,
-                        'status': status,
-                        'Name': name,
-                    }).execute()
-                if response.status_code == 201:
-                    flash("User added successfully!", "success")
-                    return redirect(url_for('routes.add_user'))
-                else:
-                    flash("Failed to add user. Please try again.", "danger")
-            except Exception as e:
-                flash(f"An error occurred: {e}", "danger")
+            # get user id from the authentication response
+            auth_id = response['user']['id']
+
+            # Insert user into users table
+            result = app.supabase.table('users').insert({
+                'email': email,
+                'employee_id': employee_id,
+                'username': username,
+                'password': password,
+                'role': role,
+                'created_at': created_at,
+                'updated_at': updated_at,
+                'auth_user_id': auth_id,
+                'status': status,
+                'Name': name
+            }).execute()
+
+            if 'error' in result:
+                flash('Error adding user to the database: ' +
+                      result['error']['message'])
+                return redirect(url_for('admin_dashboard'))
+
+            flash('User created successfully!')
+            return redirect(url_for('admin_dashboard'))
 
         return render_template('add_user.html', form=form)
+
+        # form = RegistrationForm()
+        # if form.validate_on_submit():
+        #     app.supabase.table('employees').insert({
+        #         'employee_name': form.name.data,
+        #         'email': form.email.data,
+        #         'employee_id': form.employee_id.data,
+        #         'title': form.title.data,
+        #         'reports_to': form.reports_to.data,
+        #         'hire_date': form.hire_date.data,
+        #         'seniority_date': form.seniority_date.data,
+        #         'department': form.department.data,
+        #         'auth_user_id': form.auth_user_id.data
+        #     }).execute()
+        #     flash('User added successfully.', 'success')
+        #     return redirect(url_for('admin_dashboard'))
+        # return render_template('add_user.html', form=form)
 
     @app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
     def edit_user(user_id):
@@ -295,12 +311,11 @@ def init_routes(app):
             form.email.data = user['email'].strip()
             form.employee_id.data = user['employee_id'].strip()
             form.title.data = user['title'].strip()
-            form.reports_to.data = user['reports_to'].strip(
-            ) if user['reports_to'] else ''
+            form.reports_to.data = user['reports_to'].strip() if user['reports_to'] else ''
             form.hire_date.data = user['hire_date']
             form.seniority_date.data = user['seniority_date']
-            form.department.data = user['Department'].strip()
-            form.company_code.data = user['Company_Code'].strip()
+            form.department.data = user['department'].strip()
+            form.company_code.data = user['company_code'].strip()
             form.pay_grade.data = user['pay_grade'].strip()
 
         if form.validate_on_submit():
@@ -312,8 +327,8 @@ def init_routes(app):
                 'reports_to': form.reports_to.data.strip() if form.reports_to.data else None,
                 'hire_date': form.hire_date.data,
                 'seniority_date': form.seniority_date.data,
-                'Department': form.department.data.strip(),
-                'Company_Code': form.company_code.data.strip(),
+                'department': form.department.data.strip(),
+                'company_code': form.company_code.data.strip(),
                 'pay_grade': form.pay_grade.data.strip()
             }).eq('id', user_id).execute()
             flash('User updated successfully.', 'success')
@@ -409,7 +424,7 @@ def init_routes(app):
             return redirect(url_for('electronic_services'))
 
         return render_template(f'{form_type}_form.html', form=form)
-
+    
     @app.route('/get_employee_details', methods=['GET'])
     def get_employee_details():
         employee_name = request.args.get('employee_name')
@@ -417,37 +432,54 @@ def init_routes(app):
             return jsonify({'error': 'Employee name is required'}), 400
 
         try:
-            # Clean the employee name by stripping whitespaces and newline characters
             cleaned_employee_name = employee_name.strip()
             query = f"%{cleaned_employee_name}%"
             logging.debug(f"Searching for employee with query: {query}")
 
-            response = app.supabase.table('employees').select(
-                '*').ilike('employee_name', query).execute()
+            # Execute the query
+            response = app.supabase.table('employees').select('*').ilike('employee_name', query).execute()
             logging.debug(f"Supabase response: {response}")
 
+            # Check for errors in the response
+            if response.error:
+                logging.error(f"Supabase error: {response.error}")
+                return jsonify({'error': 'Supabase error', 'message': response.error.message}), 500
+
+            # Check if no data is found
             if not response.data:
+                logging.warning(f"No employee found for query: {query}")
                 return jsonify({'error': 'Employee not found'}), 404
 
-            employee_data = response.data
-            logging.debug(f"Employee data response: {employee_data}")
+            # Get the first employee record
+            employee = response.data[0]
+            logging.debug(f"Employee data: {employee}")
 
-            employee = employee_data[0]
-            supervisor_data = app.supabase.table('employees').select(
-                '*').eq('employee_id', employee['reports_to']).execute().data
-            supervisor_position = supervisor_data[0]['title'] if supervisor_data else ''
+            # Fetch supervisor data
+            supervisor_response = app.supabase.table('employees').select('title').eq('employee_id', employee['reports_to']).execute()
+            logging.debug(f"Supervisor response: {supervisor_response}")
 
+            if supervisor_response.error:
+                logging.error(f"Supabase error (supervisor): {supervisor_response.error}")
+                return jsonify({'error': 'Supabase error (supervisor)', 'message': supervisor_response.error.message}), 500
+
+            supervisor_position = supervisor_response.data[0]['title'] if supervisor_response.data else ''
+            
+            # Prepare the result
             result = {
-                'position_title': employee['title'].strip(),
-                'position_id': employee['position_id'].strip(),
-                'department': employee['Department'].strip(),
-                'company_code': employee['Company_Code'].strip(),
-                'pay_grade': employee['pay_grade'].strip(),
-                'supervisor_position': supervisor_position
+                'position_title': employee.get('title', '').strip(),
+                'position_id': employee.get('position_id', '').strip(),
+                'department': employee.get('department', '').strip(),
+                'company_code': employee.get('company_code', '').strip(),
+                'pay_grade': employee.get('pay_grade', '').strip(),
+                'supervisor_position': supervisor_position.strip() if supervisor_position else ''
             }
 
-            logging.debug(f"Resulting JSON: {result}")
+            # Log the result before returning
+            logging.debug(f"Resulting JSON: {json.dumps(result)}")
             return jsonify(result)
+
         except Exception as e:
-            logging.error(f"Error fetching employee details: {e}", exc_info=True)
+            logging.error(f"Error fetching employee details: {e}")
+            logging.error(traceback.format_exc())
             return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
+
