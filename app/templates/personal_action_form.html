@@ -1,227 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Personal Action Form</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .form-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .form-section {
-            margin-bottom: 20px;
-        }
-        .form-section h3 {
-            margin-bottom: 10px;
-        }
-        .form-section div {
-            margin-bottom: 10px;
-        }
-        .form-section label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-section input, .form-section select, .form-section textarea {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-        }
-        .form-section textarea {
-            height: 100px;
-        }
-        .form-section table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        .form-section table, .form-section th, .form-section td {
-            border: 1px solid #ccc;
-        }
-        .form-section th, .form-section td {
-            padding: 10px;
-            text-align: left;
-        }
-    </style>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/personal_action_form.css') }}"
+    />
     <script>
-        async function fetchEmployeeDetails() {
-            const employeeName = document.getElementById('employee_name').value;
-            if (employeeName) {
-                try {
-                    const response = await fetch(`/get_employee_details?employee_name=${employeeName}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log(data);
-                        document.getElementById('position_title').value = data.position_title;
-                        document.getElementById('position_id').value = data.position_id;
-                        document.getElementById('department').value = data.department;
-                        document.getElementById('company_code').value = data.company_code;
-                        document.getElementById('pay_grade').value = data.pay_grade;
-                        document.getElementById('supervisor_position').value = data.supervisor_position;
-                    } else {
-                        alert('Employee not found');
-                    }
-                } catch (error) {
-                    console.error('Error fetching employee details:', error);
-                }
+      async function fetchEmployeeDetails() {
+        const employeeName = document.getElementById("employee_name").value;
+        if (employeeName) {
+          try {
+            const response = await fetch(
+              `/get_employee_details?employee_name=${employeeName}`
+            );
+            if (response.ok) {
+              const data = await response.json();
+              console.log(data);
+              document.getElementById("position_title").value =
+                data.position_title;
+              document.getElementById("position_id").value = data.position_id;
+              document.getElementById("department").value = data.department;
+              document.getElementById("company_code").value = data.company_code;
+              document.getElementById("pay_grade").value = data.pay_grade;
+              document.getElementById("supervisor_position").value =
+                data.supervisor_position;
+            } else {
+              alert("Employee not found");
             }
+          } catch (error) {
+            console.error("Error fetching employee details:", error);
+          }
         }
+      }
     </script>
-</head>
-<body>
-    <div class="form-container">
+  </head>
+  <body>
+    <header class="container-fluid">
+      <div class="logo">
+        <img src="/static/img/LuxiumLogo.png" alt="Company Logo" />
+      </div>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li><a href="/logout" class="logout-btn">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="container">
+      <div class="title-bar">
         <h1>Personal Action Form</h1>
-        <form action="{{ url_for('fill_form', form_type='personal_action') }}" method="POST">
-            {{ form.hidden_tag() }}
-            
-            <div class="form-section">
-                <h2>Business Unit: Luxium Solutions</h2>
-                <div>
-                    {{ form.employee_name.label }}
-                    {{ form.employee_name(onchange="fetchEmployeeDetails()") }}
-                </div>
-                <div>
-                    {{ form.effective_date.label }} {{ form.effective_date }}
-                </div>
-                <div>
-                    {{ form.position_id.label }} {{ form.position_id(id='position_id') }}
-                </div>
-            </div>
+      </div>
+      <div class="form-container">
+        <form
+          action="{{ url_for('fill_form', form_type='personal_action') }}"
+          method="POST"
+        >
+          {{ form.hidden_tag() }}
 
-            <div class="form-section">
-                <h3>Transaction Codes</h3>
-                <div>
-                    {{ form.transaction_codes.label }} {{ form.transaction_codes }}
-                </div>
-
-                <h3>Reason Codes</h3>
-                <div>
-                    {{ form.reason_codes.label }} {{ form.reason_codes }}
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>Required</h3>
-                <div>
-                    {{ form.position_title.label }} {{ form.position_title(id='position_title') }}
-                </div>
-                <div>
-                    {{ form.department.label }} {{ form.department(id='department') }}
-                </div>
-                <div>
-                    {{ form.supervisor_name.label }} {{ form.supervisor_name }}
-                </div>
-                <div>
-                    {{ form.supervisor_position.label }} {{ form.supervisor_position(id='supervisor_position') }}
-                </div>
-                <div>
-                    {{ form.company_code.label }} {{ form.company_code(id='company_code') }}
-                </div>
-                <div>
-                    {{ form.pay_grade.label }} {{ form.pay_grade(id='pay_grade') }}
-                </div>
-                <div>
-                    {{ form.current_yearly_salary.label }} {{ form.current_yearly_salary }}
-                </div>
-                <div>
-                    {{ form.current_hourly_rate.label }} {{ form.current_hourly_rate }}
-                </div>
-                <div>
-                    {{ form.weeks_full_pay.label }} {{ form.weeks_full_pay }}
-                </div>
-                <div>
-                    {{ form.weeks_60_pay.label }} {{ form.weeks_60_pay }}
-                </div>
-                <div>
-                    {{ form.pay_through.label }} {{ form.pay_through }}
-                </div>
-                <div>
-                    {{ form.additional_payments_due_employee.label }} {{ form.additional_payments_due_employee }}
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>Current Information</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Position Title</th>
-                            <th>Department</th>
-                            <th>Supervisor Name</th>
-                            <th>Supervisor Position</th>
-                            <th>Pay Group</th>
-                            <th>Pay Grade</th>
-                            <th>Yearly Salary</th>
-                            <th>Hourly Rate</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{{ form.current_position_title }}</td>
-                            <td>{{ form.current_department }}</td>
-                            <td>{{ form.current_supervisor_name }}</td>
-                            <td>{{ form.current_supervisor_position }}</td>
-                            <td>{{ form.current_pay_group }}</td>
-                            <td>{{ form.current_pay_grade }}</td>
-                            <td>{{ form.current_yearly_salary }}</td>
-                            <td>{{ form.current_hourly_rate }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="form-section">
-                <h3>New Information</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Position Title</th>
-                            <th>Department</th>
-                            <th>Supervisor Name</th>
-                            <th>Supervisor Position</th>
-                            <th>Pay Group</th>
-                            <th>Pay Grade</th>
-                            <th>Yearly Salary</th>
-                            <th>Hourly Rate</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{{ form.new_position_title }}</td>
-                            <td>{{ form.new_department }}</td>
-                            <td>{{ form.new_supervisor_name }}</td>
-                            <td>{{ form.new_supervisor_position }}</td>
-                            <td>{{ form.new_pay_group }}</td>
-                            <td>{{ form.new_pay_grade }}</td>
-                            <td>{{ form.new_yearly_salary }}</td>
-                            <td>{{ form.new_hourly_rate }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="form-section">
-                <h3>Special Instructions</h3>
-                <div>
-                    {{ form.special_instructions.label }} {{ form.special_instructions }}
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>Approval</h3>
-                <div>
-                    {{ form.approver.label }} {{ form.approver }}
-                </div>
-            </div>
-
+          <div class="form-section">
+            <h2>Business Unit: Luxium Solutions</h2>
             <div>
-                {{ form.submit }}
+              {{ form.employee_name.label }} {{
+              form.employee_name(onchange="fetchEmployeeDetails()") }}
             </div>
+            <div>{{ form.effective_date.label }} {{ form.effective_date }}</div>
+            <div>
+              {{ form.position_id.label }} {{ form.position_id(id='position_id')
+              }}
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Transaction Codes</h3>
+            <div>
+              {{ form.transaction_codes.label }} {{ form.transaction_codes }}
+            </div>
+
+            <h3>Reason Codes</h3>
+            <div>{{ form.reason_codes.label }} {{ form.reason_codes }}</div>
+          </div>
+
+          <div class="form-section">
+            <h3>Required</h3>
+            <div>
+              {{ form.position_title.label }} {{
+              form.position_title(id='position_title') }}
+            </div>
+            <div>
+              {{ form.department.label }} {{ form.department(id='department') }}
+            </div>
+            <div>
+              {{ form.supervisor_name.label }} {{ form.supervisor_name }}
+            </div>
+            <div>
+              {{ form.supervisor_position.label }} {{
+              form.supervisor_position(id='supervisor_position') }}
+            </div>
+            <div>
+              {{ form.company_code.label }} {{
+              form.company_code(id='company_code') }}
+            </div>
+            <div>
+              {{ form.pay_grade.label }} {{ form.pay_grade(id='pay_grade') }}
+            </div>
+            <div>
+              {{ form.current_yearly_salary.label }} {{
+              form.current_yearly_salary }}
+            </div>
+            <div>
+              {{ form.current_hourly_rate.label }} {{ form.current_hourly_rate
+              }}
+            </div>
+            <div>{{ form.weeks_full_pay.label }} {{ form.weeks_full_pay }}</div>
+            <div>{{ form.weeks_60_pay.label }} {{ form.weeks_60_pay }}</div>
+            <div>{{ form.pay_through.label }} {{ form.pay_through }}</div>
+            <div>
+              {{ form.additional_payments_due_employee.label }} {{
+              form.additional_payments_due_employee }}
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Current Information</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Position Title</th>
+                  <th>Department</th>
+                  <th>Supervisor Name</th>
+                  <th>Supervisor Position</th>
+                  <th>Pay Group</th>
+                  <th>Pay Grade</th>
+                  <th>Yearly Salary</th>
+                  <th>Hourly Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{ form.current_position_title }}</td>
+                  <td>{{ form.current_department }}</td>
+                  <td>{{ form.current_supervisor_name }}</td>
+                  <td>{{ form.current_supervisor_position }}</td>
+                  <td>{{ form.current_pay_group }}</td>
+                  <td>{{ form.current_pay_grade }}</td>
+                  <td>{{ form.current_yearly_salary }}</td>
+                  <td>{{ form.current_hourly_rate }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="form-section">
+            <h3>New Information</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Position Title</th>
+                  <th>Department</th>
+                  <th>Supervisor Name</th>
+                  <th>Supervisor Position</th>
+                  <th>Pay Group</th>
+                  <th>Pay Grade</th>
+                  <th>Yearly Salary</th>
+                  <th>Hourly Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{ form.new_position_title }}</td>
+                  <td>{{ form.new_department }}</td>
+                  <td>{{ form.new_supervisor_name }}</td>
+                  <td>{{ form.new_supervisor_position }}</td>
+                  <td>{{ form.new_pay_group }}</td>
+                  <td>{{ form.new_pay_grade }}</td>
+                  <td>{{ form.new_yearly_salary }}</td>
+                  <td>{{ form.new_hourly_rate }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="form-section">
+            <h3>Special Instructions</h3>
+            <div>
+              {{ form.special_instructions.label }} {{ form.special_instructions
+              }}
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Approval</h3>
+            <div>{{ form.approver.label }} {{ form.approver }}</div>
+          </div>
+
+          <div>{{ form.submit }}</div>
         </form>
-    </div>
-</body>
+      </div>
+    </main>
+  </body>
 </html>
