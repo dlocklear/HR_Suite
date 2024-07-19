@@ -1,33 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Personal Leave Form</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <h1>Personal Leave Form</h1>
-    <form action="{{ url_for('fill_form', form_type='personal_leave') }}" method="POST">
-        {{ form.hidden_tag() }}
-        <div>
-            {{ form.employee_name.label }} {{ form.employee_name }}
-        </div>
-        <div>
-            {{ form.employee_id.label }} {{ form.employee_id }}
-        </div>
-        <div>
-            {{ form.start_date.label }} {{ form.start_date }}
-        </div>
-        <div>
-            {{ form.end_date.label }} {{ form.end_date }}
-        </div>
-        <div>
-            {{ form.reason.label }} {{ form.reason }}
-        </div>
-        <div>
-            {{ form.submit }}
-        </div>
-    </form>
-</body>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/personal_leave_form.css') }}"
+    />
+  </head>
+  <body>
+    <header class="container-fluid">
+      <div class="logo">
+        <img src="/static/img/LuxiumLogo.png" alt="Company Logo" />
+      </div>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li><a href="/logout" class="logout-btn">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="container">
+      <div class="title-bar">
+        <h1>Personal Leave Form</h1>
+      </div>
+      <div class="form-container">
+        <form
+          action="{{ url_for('fill_form', form_type='personal_leave') }}"
+          method="POST"
+        >
+          {{ form.hidden_tag() }}
+          <div class="form-section">
+            <div>{{ form.employee_name.label }} {{ form.employee_name }}</div>
+            <div>{{ form.employee_id.label }} {{ form.employee_id }}</div>
+            <div>{{ form.start_date.label }} {{ form.start_date }}</div>
+            <div>{{ form.end_date.label }} {{ form.end_date }}</div>
+            <div>{{ form.reason.label }} {{ form.reason }}</div>
+          </div>
+          <div>{{ form.submit }}</div>
+        </form>
+      </div>
+    </main>
+  </body>
 </html>
