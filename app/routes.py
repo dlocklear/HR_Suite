@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, send_file, Blueprint
 from supabase import create_client
 from app.forms import RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm
 from app import bcrypt
@@ -10,6 +10,8 @@ import uuid
 import io
 
 logging.basicConfig(level=logging.DEBUG)
+
+bp = Blueprint('routes', __name__)
 
 
 def allowed_file(filename):
@@ -232,6 +234,9 @@ def init_routes(app):
             department = form.department.data
             status = form.status.data
 
+            # Generate unique token for email confirmation
+            confirmation_token = str(uuid.uuid4())
+
             # Hash password
             hashed_password = bcrypt.generate_password_hash(
                 password).decode('utf-8')
@@ -256,29 +261,57 @@ def init_routes(app):
                 "status": status
             }
 
-            # Insert user data into supabase
-            try:
-                response = app.supabase.table(
-                    "users").insert({
-                        "user_id": user_id,
-                        'employee_id': employee_id,
-                        'username': username,
-                        'email': email,
-                        'role': role,
-                        'created_at': created_at,
-                        'updated_at': updated_at,
-                        'status': status,
-                        'Name': name,
-                    }).execute()
-                if response.status_code == 201:
-                    flash("User added successfully!", "success")
-                    return redirect(url_for('routes.add_user'))
-                else:
-                    flash("Failed to add user. Please try again.", "danger")
-            except Exception as e:
-                flash(f"An error occurred: {e}", "danger")
+            """
+            Store user data in a temporary table or cache (this part is simplified, you might need a proper temporary storage)
+            This example uses an in-memory dictionary, consider using a persistent store for production
+            """
+            app.config['PENDING_USERS'] = app.config.get(
+                'PENDING_USERS', {})
+            app.config['PENDING_USERS'][confirmation_token] = user_data
+
+            # Send confirmation email
+            confirmation_url = url_for(
+                'confirm_user', token=confirmation_token, _external=True)
+            email_body = f"Please click the following link to confirm your registration: {confirmation_url}"
+            app.send_email(email, "Confirm your registration", email_body)
+
+            flash("A confirmation email has been sent. Please check your inbox.", "info")
+            return redirect(url_for('routes.add_user'))
 
         return render_template('add_user.html', form=form)
+
+    @bp.route('/confirm_user/<token>', methods=['GET'])
+    def confirm_user(token):
+        pending_users = app.config.get('PENDING_USERS', {})
+        user_data = pending_users.pop(token, None)
+
+        if not user_data:
+            flash("Invalid or expired confirmation link.", "danger")
+            return redirect(url_for('routes.add_user'))
+
+        # Insert user data into Supabase authentication and users tables
+        try:
+            supabase = app.supabase
+
+            # Add user to the authentication table
+            auth_response = supabase.auth.sign_up({
+                'email': user_data['email'],
+                'password': user_data['password']
+            })
+
+            if 'error' in auth_response:
+                raise Exception(auth_response['error']['message'])
+
+            # Add user to the users table
+            response = supabase.table("users").insert(user_data).execute()
+            if response.status_code != 201:
+                raise Exception("Failed to add user to the users table.")
+
+            flash("User successfully confirmed and added.", "success")
+            return redirect(url_for('add_user.html'))
+        except Exception as e:
+            flash(f"An error occurred: {e}", "danger")
+            return redirect(url_for('add_user.html'))
 
     @app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
     def edit_user(user_id):
@@ -449,5 +482,6 @@ def init_routes(app):
             logging.debug(f"Resulting JSON: {result}")
             return jsonify(result)
         except Exception as e:
-            logging.error(f"Error fetching employee details: {e}", exc_info=True)
+            logging.error(
+                f"Error fetching employee details: {e}", exc_info=True)
             return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
