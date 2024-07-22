@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Performance Evaluations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Performance Evaluations</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Employee ID</th>
+                <th>Evaluation Date</th>
+                <th>Business Result</th>
+                <th>Individual Result</th>
+                <th>Safety Result</th>
+                <th>Bonus Payout</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for evaluation in evaluations %}
+            <tr>
+                <td>{{ evaluation.employee_id }}</td>
+                <td>{{ evaluation.evaluation_date }}</td>
+                <td>{{ evaluation.business_result }}%</td>
+                <td>{{ evaluation.individual_result }}%</td>
+                <td>{{ evaluation.safety_result }}%</td>
+                <td>{{ evaluation.bonus_payout }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

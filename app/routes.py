@@ -18,7 +18,6 @@ logging.basicConfig(level=logging.DEBUG)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
 
-
 def init_routes(app):
     @app.route('/')
     def index():
@@ -279,23 +278,6 @@ def init_routes(app):
 
         return render_template('add_user.html', form=form)
 
-        # form = RegistrationForm()
-        # if form.validate_on_submit():
-        #     app.supabase.table('employees').insert({
-        #         'employee_name': form.name.data,
-        #         'email': form.email.data,
-        #         'employee_id': form.employee_id.data,
-        #         'title': form.title.data,
-        #         'reports_to': form.reports_to.data,
-        #         'hire_date': form.hire_date.data,
-        #         'seniority_date': form.seniority_date.data,
-        #         'department': form.department.data,
-        #         'auth_user_id': form.auth_user_id.data
-        #     }).execute()
-        #     flash('User added successfully.', 'success')
-        #     return redirect(url_for('admin_dashboard'))
-        # return render_template('add_user.html', form=form)
-
     @app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
     def edit_user(user_id):
         if 'user' not in session or session['user']['role'] != 'SuperUser':
@@ -424,7 +406,7 @@ def init_routes(app):
             return redirect(url_for('electronic_services'))
 
         return render_template(f'{form_type}_form.html', form=form)
-    
+
     @app.route('/get_employee_details', methods=['GET'])
     def get_employee_details():
         employee_name = request.args.get('employee_name')
@@ -432,26 +414,22 @@ def init_routes(app):
             return jsonify({'error': 'Employee name is required'}), 400
 
         try:
-            cleaned_employee_name = employee_name.strip()
-            query = f"%{cleaned_employee_name}%"
-            logging.debug(f"Searching for employee with query: {query}")
+            cleaned_employee_name = employee_name.strip().lower()
+            logging.debug(f"Searching for employee with cleaned name: {cleaned_employee_name}")
 
-            # Execute the query
-            response = app.supabase.table('employees').select('*').ilike('employee_name', query).execute()
-            logging.debug(f"Supabase response: {response}")
-
-            # Check for errors in the response
+            response = app.supabase.table('employees').select('*').execute()
             if response.error:
                 logging.error(f"Supabase error: {response.error}")
                 return jsonify({'error': 'Supabase error', 'message': response.error.message}), 500
 
-            # Check if no data is found
-            if not response.data:
-                logging.warning(f"No employee found for query: {query}")
+            # Filter response data for partial match
+            employees = [emp for emp in response.data if cleaned_employee_name in emp['employee_name'].lower()]
+
+            if not employees:
+                logging.warning(f"No employee found for cleaned name: {cleaned_employee_name}")
                 return jsonify({'error': 'Employee not found'}), 404
 
-            # Get the first employee record
-            employee = response.data[0]
+            employee = employees[0]
             logging.debug(f"Employee data: {employee}")
 
             # Fetch supervisor data
@@ -463,8 +441,7 @@ def init_routes(app):
                 return jsonify({'error': 'Supabase error (supervisor)', 'message': supervisor_response.error.message}), 500
 
             supervisor_position = supervisor_response.data[0]['title'] if supervisor_response.data else ''
-            
-            # Prepare the result
+
             result = {
                 'position_title': employee.get('title', '').strip(),
                 'position_id': employee.get('position_id', '').strip(),
@@ -474,7 +451,6 @@ def init_routes(app):
                 'supervisor_position': supervisor_position.strip() if supervisor_position else ''
             }
 
-            # Log the result before returning
             logging.debug(f"Resulting JSON: {json.dumps(result)}")
             return jsonify(result)
 
@@ -482,4 +458,3 @@ def init_routes(app):
             logging.error(f"Error fetching employee details: {e}")
             logging.error(traceback.format_exc())
             return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
-

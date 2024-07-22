@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, TextAreaField, DateField, SubmitField, HiddenField, PasswordField
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms import StringField, SelectField, TextAreaField, DateField, SubmitField, HiddenField, PasswordField, DecimalField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, NumberRange
 
 
 class RegistrationForm(FlaskForm):
@@ -146,4 +146,11 @@ class AnonymousComplaintForm(FlaskForm):
     complaint_type = SelectField('Complaint Type', choices=[
         ('harassment', 'Harassment'), ('discrimination', 'Discrimination'), ('other', 'Other')], validators=[DataRequired()])
     details = TextAreaField('Details', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+class PerformanceEvaluationForm(FlaskForm):
+    employee_id = StringField('Employee ID', validators=[DataRequired()])
+    business_result = DecimalField('Business Result (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    individual_result = DecimalField('Individual Result (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    safety_result = DecimalField('Safety Result (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
     submit = SubmitField('Submit')
