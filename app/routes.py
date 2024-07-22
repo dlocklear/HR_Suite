@@ -16,6 +16,9 @@ import json
 
 logging.basicConfig(level=logging.DEBUG)
 
+bp = Blueprint('routes', __name__)
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
 
@@ -243,39 +246,33 @@ def init_routes(app):
             name = request.form['name']
             status = request.form['status']
 
-            # Create user in supabase authentication
-            response = app.supabase.auth.sign_up(
-                credentials={"email": email, "password": password}
-            )
+            # Generate unique token for email confirmation
+            confirmation_token = str(uuid.uuid4())
+
+            # Hash password
+            hashed_password = bcrypt.generate_password_hash(
+                password).decode('utf-8')
 
             if 'error' in response:
                 flash('Error creating user: ' + response['error']['message'])
                 return redirect(url_for('admin_dashboard'))
 
-            # get user id from the authentication response
-            auth_id = response['user']['id']
+            """
+            Store user data in a temporary table or cache (this part is simplified, you might need a proper temporary storage)
+            This example uses an in-memory dictionary, consider using a persistent store for production
+            """
+            app.config['PENDING_USERS'] = app.config.get(
+                'PENDING_USERS', {})
+            app.config['PENDING_USERS'][confirmation_token] = user_data
 
-            # Insert user into users table
-            result = app.supabase.table('users').insert({
-                'email': email,
-                'employee_id': employee_id,
-                'username': username,
-                'password': password,
-                'role': role,
-                'created_at': created_at,
-                'updated_at': updated_at,
-                'auth_user_id': auth_id,
-                'status': status,
-                'Name': name
-            }).execute()
+            # Send confirmation email
+            confirmation_url = url_for(
+                'confirm_user', token=confirmation_token, _external=True)
+            email_body = f"Please click the following link to confirm your registration: {confirmation_url}"
+            app.send_email(email, "Confirm your registration", email_body)
 
-            if 'error' in result:
-                flash('Error adding user to the database: ' +
-                      result['error']['message'])
-                return redirect(url_for('admin_dashboard'))
-
-            flash('User created successfully!')
-            return redirect(url_for('admin_dashboard'))
+            flash("A confirmation email has been sent. Please check your inbox.", "info")
+            return redirect(url_for('routes.add_user'))
 
         return render_template('add_user.html', form=form)
 
@@ -294,7 +291,8 @@ def init_routes(app):
             form.email.data = user['email'].strip()
             form.employee_id.data = user['employee_id'].strip()
             form.title.data = user['title'].strip()
-            form.reports_to.data = user['reports_to'].strip() if user['reports_to'] else ''
+            form.reports_to.data = user['reports_to'].strip(
+            ) if user['reports_to'] else ''
             form.hire_date.data = user['hire_date']
             form.seniority_date.data = user['seniority_date']
             form.department.data = user['department'].strip()
@@ -434,11 +432,13 @@ def init_routes(app):
             logging.debug(f"Employee data: {employee}")
 
             # Fetch supervisor data
-            supervisor_response = app.supabase.table('employees').select('title').eq('employee_id', employee['reports_to']).execute()
+            supervisor_response = app.supabase.table('employees').select(
+                'title').eq('employee_id', employee['reports_to']).execute()
             logging.debug(f"Supervisor response: {supervisor_response}")
 
             if supervisor_response.error:
-                logging.error(f"Supabase error (supervisor): {supervisor_response.error}")
+                logging.error(
+                    f"Supabase error (supervisor): {supervisor_response.error}")
                 return jsonify({'error': 'Supabase error (supervisor)', 'message': supervisor_response.error.message}), 500
 
             supervisor_position = supervisor_response.data[0]['title'] if supervisor_response.data else ''
