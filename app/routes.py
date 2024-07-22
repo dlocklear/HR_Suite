@@ -4,8 +4,6 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from supabase import create_client
 from app.forms import RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm, PerformanceEvaluationForm
 from app import bcrypt
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 from werkzeug.utils import secure_filename
 import os
 import base64
@@ -16,8 +14,10 @@ import json
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'docx', 'csv'}
+
 
 def init_routes(app):
     @app.route('/')
@@ -411,7 +411,8 @@ def init_routes(app):
 
         try:
             cleaned_employee_name = employee_name.strip().lower()
-            logging.debug(f"Searching for employee with cleaned name: {cleaned_employee_name}")
+            logging.debug(
+                f"Searching for employee with cleaned name: {cleaned_employee_name}")
 
             response = app.supabase.table('employees').select('*').execute()
             if response.error:
@@ -419,10 +420,12 @@ def init_routes(app):
                 return jsonify({'error': 'Supabase error', 'message': response.error.message}), 500
 
             # Filter response data for partial match
-            employees = [emp for emp in response.data if cleaned_employee_name in emp['employee_name'].lower()]
+            employees = [
+                emp for emp in response.data if cleaned_employee_name in emp['employee_name'].lower()]
 
             if not employees:
-                logging.warning(f"No employee found for cleaned name: {cleaned_employee_name}")
+                logging.warning(
+                    f"No employee found for cleaned name: {cleaned_employee_name}")
                 return jsonify({'error': 'Employee not found'}), 404
 
             employee = employees[0]
@@ -457,67 +460,6 @@ def init_routes(app):
             logging.error(traceback.format_exc())
             return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
 
-    @app.route('/performance_evaluations', methods=['GET', 'POST'])
-    def performance_evaluations():
-        form = PerformanceEvaluationForm()
-        if form.validate_on_submit():
-            employee_id = form.employee_id.data
-            business_result = form.business_result.data
-            individual_result = form.individual_result.data
-            safety_result = form.safety_result.data
-
-            # Fetch employee data including pay grade
-            employee_response = app.supabase.table('employees').select('pay_grade').eq('employee_id', employee_id).execute()
-            if employee_response.error or not employee_response.data:
-                flash('Error fetching employee data', 'danger')
-                return render_template('performance_evaluations.html', form=form)
-
-            pay_grade = employee_response.data[0]['pay_grade']
-
-            # Fetch pay grade details
-            pay_grade_response = app.supabase.table('pay_grades').select('*').eq('band', pay_grade).execute()
-            if pay_grade_response.error or not pay_grade_response.data:
-                flash('Error fetching pay grade data', 'danger')
-                return render_template('performance_evaluations.html', form=form)
-
-            pay_grade_data = pay_grade_response.data[0]
-            target_award = pay_grade_data['target_award']
-            business_weight = pay_grade_data['business_weight']
-            individual_weight = pay_grade_data['individual_weight']
-            safety_weight = pay_grade_data['safety_weight']
-
-            # Calculate weighted results
-            weighted_business = business_result * (business_weight / 100)
-            weighted_individual = individual_result * (individual_weight / 100)
-            weighted_safety = safety_result * (safety_weight / 100)
-            overall_performance = weighted_business + weighted_individual + weighted_safety
-
-            # Fetch salary
-            salary_response = app.supabase.table('salaries').select('current_salary').eq('employee_id', employee_id).execute()
-            if salary_response.error or not salary_response.data:
-                flash('Error fetching salary data', 'danger')
-                return render_template('performance_evaluations.html', form=form)
-
-            salary = salary_response.data[0]['current_salary']
-
-             # Calculate bonus payout
-            bonus_payout = salary * (overall_performance / 100) * (target_award / 100)
-
-             # Insert performance evaluation into the database
-            app.supabase.table('performance_evaluations').insert({
-                'employee_id': employee_id,
-                'evaluation_date': datetime.date.today(),
-                'business_result': business_result,
-                'individual_result': individual_result,
-                'safety_result': safety_result,
-                'bonus_payout': bonus_payout
-            }).execute()
-
-            flash('Performance evaluation submitted successfully', 'success')
-            return redirect(url_for('performance_evaluations'))
-
-        return render_template('performance_evaluations.html', form=form)
-
     @app.route('/myteam/performance_evaluations', methods=['GET', 'POST'])
     def myteam_performance_evaluations():
         form = PerformanceEvaluationForm()
@@ -528,7 +470,8 @@ def init_routes(app):
             safety_result = form.safety_result.data
 
             # Fetch employee data including pay grade
-            employee_response = app.supabase.table('employees').select('pay_grade').eq('employee_id', employee_id).execute()
+            employee_response = app.supabase.table('position').select(
+                'pay_grade').eq('employee_id', employee_id).execute()
             if employee_response.error or not employee_response.data:
                 flash('Error fetching employee data', 'danger')
                 return render_template('performance_evaluations.html', form=form)
@@ -536,7 +479,8 @@ def init_routes(app):
             pay_grade = employee_response.data[0]['pay_grade']
 
             # Fetch pay grade details
-            pay_grade_response = app.supabase.table('pay_grades').select('*').eq('band', pay_grade).execute()
+            pay_grade_response = app.supabase.table(
+                'pay_grades').select('*').eq('band', pay_grade).execute()
             if pay_grade_response.error or not pay_grade_response.data:
                 flash('Error fetching pay grade data', 'danger')
                 return render_template('performance_evaluations.html', form=form)
@@ -554,7 +498,8 @@ def init_routes(app):
             overall_performance = weighted_business + weighted_individual + weighted_safety
 
             # Fetch salary
-            salary_response = app.supabase.table('salaries').select('current_salary').eq('employee_id', employee_id).execute()
+            salary_response = app.supabase.table('salaries').select(
+                'current_salary').eq('employee_id', employee_id).execute()
             if salary_response.error or not salary_response.data:
                 flash('Error fetching salary data', 'danger')
                 return render_template('performance_evaluations.html', form=form)
@@ -562,7 +507,8 @@ def init_routes(app):
             salary = salary_response.data[0]['current_salary']
 
             # Calculate bonus payout
-            bonus_payout = salary * (overall_performance / 100) * (target_award / 100)
+            bonus_payout = salary * \
+                (overall_performance / 100) * (target_award / 100)
 
             # Insert performance evaluation into the database
             app.supabase.table('performance_evaluations').insert({
@@ -577,10 +523,9 @@ def init_routes(app):
             flash('Performance evaluation submitted successfully', 'success')
             return redirect(url_for('myteam_performance_evaluations'))
 
-        return render_template('performance_evaluations.html', form=form)
+        return render_template('myteam_performance_evaluations.html', form=form)
 
     @app.route('/people/performance_evaluations')
-    @app.route('/myteam/view_performance_evaluations')
     def view_performance_evaluations():
         evaluations = app.supabase.table('performance_evaluations').select(
             'employee_id, evaluation_date, business_result, individual_result, safety_result, bonus_payout'

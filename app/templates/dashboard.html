@@ -47,7 +47,7 @@
           <a href="#">People</a>
           <ul class="dropdown">
             <li><a href="#">Wellness</a></li>
-            <li><a href="#">Performance</a></li>
+            <li><a href="{{ url_for('view_performance_evaluations')}}">Performance</a></li>
             <li><a href="#">Employment</a></li>
             <li><a href="#">Leave</a></li>
           </ul>
@@ -56,7 +56,7 @@
           <a href="#">MyTeam</a>
           <ul class="dropdown">
             <li><a href="#">Wellness</a></li>
-            <li><a href="#">Performance</a></li>
+            <li><a href="{{ url_for('myteam_performance_evaluations') }}">Performance</a></li>
             <li><a href="{{ url_for('myteam_employment') }}">Employment</a></li>
             <li><a href="#">Leave</a></li>
           </ul>
