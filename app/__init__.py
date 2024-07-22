@@ -13,7 +13,6 @@ load_dotenv()
 
 bcrypt = Bcrypt()
 
-
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -25,12 +24,10 @@ def create_app(config_class=Config):
     key = os.getenv("SUPABASE_ANON_KEY")
 
     if not url or not key:
-        logging.error(
-            "Supabase URL or Key not found. Please check the .env file.")
+        logging.error("Supabase URL or Key not found. Please check the .env file.")
     else:
         logging.info(f"Supabase URL: {url}")
-        # Log only the first 10 characters of the key for security
-        logging.info(f"Supabase Key: {key[:10]}...")
+        logging.info(f"Supabase Key: {key[:10]}...")  # Log only the first 10 characters of the key for security
 
     app.supabase = create_client(url, key)
 
