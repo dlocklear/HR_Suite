@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/performance_results.css') }}">
+</head>
+<body>
+<header class="container-fluid">
+    <div class="logo">
+        <img src="/static/img/LuxiumLogo.png" alt="Company Logo">
+    </div>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><a href="/logout" class="logout-btn">Logout</a></li>
+        </ul>
+    </nav>
+</header>
+<main class="container">
+    <div class="title-bar">
+        <h1>Performance Results</h1>
+    </div>
+    <div class="results-container">
+        {% for evaluation in evaluations %}
+        <div class="evaluation-card">
+            <h2>Employee ID: {{ evaluation['employee_id'] }}</h2>
+            <p>Evaluation Date: {{ evaluation['evaluation_date'] }}</p>
+            <p>Business Result: {{ evaluation['business_result'] }}%</p>
+            <p>Individual Result: {{ evaluation['individual_result'] }}%</p>
+            <p>Safety Result: {{ evaluation['safety_result'] }}%</p>
+            <p>Bonus Payout: ${{ evaluation['bonus_payout'] }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+</body>
+</html>

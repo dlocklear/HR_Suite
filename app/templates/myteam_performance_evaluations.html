@@ -7,33 +7,40 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/myteam_performance_evaluations.css') }}">
 </head>
 <body>
-    <header class="container-fluid">
-        <div class="logo">
-            <img src="/static/img/LuxiumLogo.png" alt="Company Logo">
-        </div>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                <li><a href="/logout" class="logout-btn">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
-    <main class="container">
-        <div class="title-bar">
-            <h1>Performance Evaluation</h1>
-        </div>
-        <div class="form-container">
-            <form action="{{ url_for('myteam_performance_evaluations') }}" method="POST">
-                {{ form.hidden_tag() }}
-                <div class="form-section">
-                    <div>{{ form.employee_id.label }} {{ form.employee_id }}</div>
-                    <div>{{ form.business_result.label }} {{ form.business_result }}</div>
-                    <div>{{ form.individual_result.label }} {{ form.individual_result }}</div>
-                    <div>{{ form.safety_result.label }} {{ form.safety_result }}</div>
+<header class="container-fluid">
+    <div class="logo">
+        <img src="/static/img/LuxiumLogo.png" alt="Company Logo">
+    </div>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><a href="/logout" class="logout-btn">Logout</a></li>
+        </ul>
+    </nav>
+</header>
+<main class="container">
+    <div class="title-bar">
+        <h1>Performance Evaluation</h1>
+    </div>
+    <div class="form-container">
+        <form action="{{ url_for('myteam_performance_evaluations') }}" method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-section">
+                <div>
+                    <label for="employee_id">Employee</label>
+                    <select id="employee_id" name="employee_id">
+                        {% for employee in employees %}
+                        <option value="{{ employee['employee_id'] }}">{{ employee['employee_name'] }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div>{{ form.submit }}</div>
-            </form>
-        </div>
-    </main>
+                <div>{{ form.business_result.label }} {{ form.business_result }}</div>
+                <div>{{ form.individual_result.label }} {{ form.individual_result }}</div>
+                <div>{{ form.safety_result.label }} {{ form.safety_result }}</div>
+            </div>
+            <div>{{ form.submit }}</div>
+        </form>
+    </div>
+</main>
 </body>
 </html>

@@ -1,34 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Performance Evaluations</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View Performance Evaluations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/view_performance_evaluations.css') }}" />
 </head>
 <body>
-    <h1>Performance Evaluations</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Employee ID</th>
-                <th>Evaluation Date</th>
-                <th>Business Result</th>
-                <th>Individual Result</th>
-                <th>Safety Result</th>
-                <th>Bonus Payout</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for evaluation in evaluations %}
-            <tr>
-                <td>{{ evaluation.employee_id }}</td>
-                <td>{{ evaluation.evaluation_date }}</td>
-                <td>{{ evaluation.business_result }}%</td>
-                <td>{{ evaluation.individual_result }}%</td>
-                <td>{{ evaluation.safety_result }}%</td>
-                <td>{{ evaluation.bonus_payout }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <header class="container-fluid">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='img/LuxiumLogo.png') }}" alt="Company Logo" />
+        </div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <div class="title-bar">
+            <h1>View Performance Evaluations</h1>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Evaluation Date</th>
+                        <th>Business Result</th>
+                        <th>Individual Result</th>
+                        <th>Safety Result</th>
+                        <th>Bonus Payout</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for evaluation in evaluations %}
+                    <tr>
+                        <td>{{ employee_names[evaluation.employee_id] }}</td>
+                        <td>{{ evaluation.evaluation_date }}</td>
+                        <td>{{ evaluation.business_result }}%</td>
+                        <td>{{ evaluation.individual_result }}%</td>
+                        <td>{{ evaluation.safety_result }}%</td>
+                        <td>${{ "%.2f" | format(evaluation.bonus_payout) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
 </body>
 </html>
+
