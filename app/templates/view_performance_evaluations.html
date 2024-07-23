@@ -1,56 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Performance Results</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/view_performance_evaluations.css') }}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Performance Reviews</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <header class="container-fluid">
-        <div class="logo">
-            <img src="{{ url_for('static', filename='img/LuxiumLogo.png') }}" alt="Company Logo" />
+    <header>
+        <div class="banner">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='img/LuxiumLogo.png') }}" alt="Luxium Solutions Logo">
+            </div>
         </div>
-        <nav>
+        <nav class="navigation">
             <ul>
                 <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                <li><a href="{{ url_for('myteam_performance_evaluations') }}">Performance Evaluations</a></li>
-                <li><a href="{{ url_for('view_performance_evaluations') }}">Performance Results</a></li>
                 <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
             </ul>
         </nav>
     </header>
     <main class="container">
         <div class="title-bar">
-            <h1>Performance Results</h1>
+            <h1>View Performance Reviews</h1>
         </div>
-        <div class="results-container">
-            <table class="table">
+        <div class="table-container">
+            <table>
                 <thead>
                     <tr>
                         <th>Employee ID</th>
-                        <th>Evaluation Date</th>
-                        <th>Business Result (%)</th>
-                        <th>Individual Result (%)</th>
-                        <th>Safety Result (%)</th>
+                        <th>Business Result</th>
+                        <th>Individual Result</th>
+                        <th>Safety Result</th>
                         <th>Bonus Payout</th>
+                        <th>Evaluation Date</th>
+                        <th>Submitted At</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for evaluation in evaluations %}
-                        <tr>
-                            <td>{{ evaluation.employee_id }}</td>
-                            <td>{{ evaluation.evaluation_date }}</td>
-                            <td>{{ evaluation.business_result }}</td>
-                            <td>{{ evaluation.individual_result }}</td>
-                            <td>{{ evaluation.safety_result }}</td>
-                            <td>{{ evaluation.bonus_payout }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </main>
-</body>
-</html>
+                    {% for review in reviews %}
+                    <tr>
+                        <td>{{ review.employee_id }}</td>
+                        <td>{
 

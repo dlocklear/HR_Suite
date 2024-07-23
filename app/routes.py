@@ -9,10 +9,10 @@ from flask import (
     redirect,
     url_for,
     flash,
-    send_file,
 )
 from supabase import create_client
 from app.forms import (
+    PerformanceEvaluationForm,
     RegistrationForm,
     PasswordResetForm,
     UploadForm,
@@ -20,26 +20,16 @@ from app.forms import (
     LeaveRequestForm,
     PersonalLeaveForm,
     AnonymousComplaintForm,
-    PerformanceEvaluationForm,
 )
 from app import bcrypt
-from werkzeug.utils import secure_filename
 import os
 import base64
 import uuid
 import io
 import traceback
-import json
+from werkzeug.utils import secure_filename
 
 logging.basicConfig(level=logging.DEBUG)
-
-
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in {
-        "pdf",
-        "docx",
-        "csv",
-    }
 
 
 def init_routes(app):
@@ -523,14 +513,14 @@ def init_routes(app):
 
     @app.route("/myteam/performance_evaluations", methods=["GET", "POST"])
     def myteam_performance_evaluations():
-        form = PerformanceEvaluationForm()
-
         if "user" not in session:
             flash("You need to be logged in to view this page.")
             return redirect(url_for("login"))
 
-        # Fetch employees reporting to the current user
         user_id = session["user"]["id"]
+        form = PerformanceEvaluationForm()
+
+        # Fetch employees reporting to the current user
         current_employee = (
             app.supabase.table("employees")
             .select("employee_id")
@@ -541,85 +531,92 @@ def init_routes(app):
         current_employee_id = current_employee["employee_id"]
         employees = (
             app.supabase.table("employees")
-            .select("employee_id, employee_name")
+            .select("employee_name, employee_id")
             .eq("reports_to", current_employee_id)
             .execute()
             .data
         )
 
-        form.employee_name.choices = [
-            (e["employee_id"], e["employee_name"]) for e in employees
+        form.employee_id.choices = [
+            (employee["employee_id"], employee["employee_name"])
+            for employee in employees
         ]
 
         if form.validate_on_submit():
-            employee_id = form.employee_name.data
+            employee_id = form.employee_id.data
             business_result = form.business_result.data
             individual_result = form.individual_result.data
             safety_result = form.safety_result.data
 
-            # Fetch employee data including pay grade
-            employee_response = (
-                app.supabase.table("employees")
+            # Fetch pay grade and salary
+            position_response = (
+                app.supabase.table("position")
                 .select("pay_grade")
                 .eq("employee_id", employee_id)
                 .execute()
             )
-            if employee_response.error or not employee_response.data:
-                flash("Error fetching employee data", "danger")
-                return render_template("myteam_performance_evaluations.html", form=form)
-
-            pay_grade = employee_response.data[0]["pay_grade"]
-
-            # Fetch pay grade details
-            pay_grade_response = (
-                app.supabase.table("pay_grades")
-                .select("*")
-                .eq("band", pay_grade)
-                .execute()
-            )
-            if pay_grade_response.error or not pay_grade_response.data:
+            if not position_response.data:
                 flash("Error fetching pay grade data", "danger")
                 return render_template("myteam_performance_evaluations.html", form=form)
 
-            pay_grade_data = pay_grade_response.data[0]
-            target_award = pay_grade_data["target_award"]
-            business_weight = pay_grade_data["business_weight"]
-            individual_weight = pay_grade_data["individual_weight"]
-            safety_weight = pay_grade_data["safety_weight"]
-
-            # Calculate weighted results
-            weighted_business = business_result * (business_weight / 100)
-            weighted_individual = individual_result * (individual_weight / 100)
-            weighted_safety = safety_result * (safety_weight / 100)
-            overall_performance = (
-                weighted_business + weighted_individual + weighted_safety
-            )
-
-            # Fetch salary
+            pay_grade = position_response.data[0]["pay_grade"]
             salary_response = (
                 app.supabase.table("salaries")
                 .select("current_salary")
                 .eq("employee_id", employee_id)
                 .execute()
             )
-            if salary_response.error or not salary_response.data:
+            if not salary_response.data:
                 flash("Error fetching salary data", "danger")
                 return render_template("myteam_performance_evaluations.html", form=form)
 
             salary = salary_response.data[0]["current_salary"]
 
+            # Fetch pay band details
+            pay_band_response = (
+                app.supabase.table("pay_bands")
+                .select("*")
+                .eq("band", pay_grade)
+                .execute()
+            )
+            if not pay_band_response.data:
+                flash("Error fetching pay band data", "danger")
+                return render_template("myteam_performance_evaluations.html", form=form)
+
+            pay_band = pay_band_response.data[0]
+
             # Calculate bonus payout
-            bonus_payout = salary * (overall_performance / 100) * (target_award / 100)
+            target_award = pay_band["target_award"]
+            business_weight = pay_band["business_weight"]
+            individual_weight = pay_band["individual_weight"]
+            safety_weight = pay_band["safety_weight"]
+
+            business_result = business_result / 100.0
+            individual_result = individual_result / 100.0
+            safety_result = safety_result / 100.0
+
+            target_bonus = salary * target_award
+            business_contribution = target_bonus * business_weight
+            individual_contribution = target_bonus * individual_weight
+            safety_contribution = target_bonus * safety_weight
+
+            actual_business = business_contribution * business_result
+            actual_individual = individual_contribution * individual_result
+            actual_safety = safety_contribution * safety_result
+
+            bonus_payout = actual_business + actual_individual + actual_safety
 
             # Insert performance evaluation into the database
-            app.supabase.table("performance_evaluations").insert(
+            app.supabase.table("performance_reviews").insert(
                 {
                     "employee_id": employee_id,
-                    "evaluation_date": datetime.date.today(),
                     "business_result": business_result,
                     "individual_result": individual_result,
                     "safety_result": safety_result,
                     "bonus_payout": bonus_payout,
+                    "evaluation_date": datetime.date.today(),
+                    "submitted_at": datetime.datetime.now(),
+                    "submitted_by": current_employee_id,
                 }
             ).execute()
 
@@ -628,8 +625,8 @@ def init_routes(app):
 
         return render_template("myteam_performance_evaluations.html", form=form)
 
-    @app.route("/people/performance_evaluations")
-    def view_performance_evaluations():
+    @app.route("/myteam/view_performance_reviews", methods=["GET"])
+    def view_performance_reviews():
         if "user" not in session:
             flash("You need to be logged in to view this page.")
             return redirect(url_for("login"))
@@ -644,16 +641,11 @@ def init_routes(app):
         )
         current_employee_id = current_employee["employee_id"]
 
-        evaluations = (
-            app.supabase.table("performance_evaluations")
-            .select(
-                "employee_id, evaluation_date, business_result, individual_result, safety_result, bonus_payout"
-            )
-            .eq("reports_to", current_employee_id)
+        reviews = (
+            app.supabase.table("performance_reviews")
+            .select("*")
+            .eq("submitted_by", current_employee_id)
             .execute()
             .data
         )
-
-        return render_template(
-            "view_performance_evaluations.html", evaluations=evaluations
-        )
+        return render_template("view_performance_reviews.html", reviews=reviews)
