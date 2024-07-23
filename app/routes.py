@@ -487,6 +487,3 @@ def init_routes(app):
             'employee_id, evaluation_date, business_result, individual_result, safety_result, bonus_payout'
         ).execute().data
         return render_template('view_performance_evaluations.html', evaluations=evaluations)
-
-    @app.route('/admin_dashboard/calculation_configuration')
-    # def calculation_configuration():
