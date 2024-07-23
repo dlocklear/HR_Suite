@@ -147,10 +147,9 @@ class AnonymousComplaintForm(FlaskForm):
         ('harassment', 'Harassment'), ('discrimination', 'Discrimination'), ('other', 'Other')], validators=[DataRequired()])
     details = TextAreaField('Details', validators=[DataRequired()])
     submit = SubmitField('Submit')
-
 class PerformanceEvaluationForm(FlaskForm):
-    employee_id = StringField('Employee ID', validators=[DataRequired()])
-    business_result = DecimalField('Business Result (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
-    individual_result = DecimalField('Individual Result (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
-    safety_result = DecimalField('Safety Result (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    employee_id = SelectField('Employee', coerce=int, validators=[DataRequired()])
+    business_result = DecimalField('Business Result (%)', validators=[DataRequired()])
+    individual_result = DecimalField('Individual Result (%)', validators=[DataRequired()])
+    safety_result = DecimalField('Safety Result (%)', validators=[DataRequired()])
     submit = SubmitField('Submit')

@@ -523,12 +523,13 @@ def init_routes(app):
 
     @app.route("/myteam/performance_evaluations", methods=["GET", "POST"])
     def myteam_performance_evaluations():
+        form = PerformanceEvaluationForm()
+
         if "user" not in session:
             flash("You need to be logged in to view this page.")
             return redirect(url_for("login"))
 
-        form = PerformanceEvaluationForm()
-
+        # Fetch employees reporting to the current user
         user_id = session["user"]["id"]
         current_employee = (
             app.supabase.table("employees")
@@ -538,7 +539,6 @@ def init_routes(app):
             .data[0]
         )
         current_employee_id = current_employee["employee_id"]
-
         employees = (
             app.supabase.table("employees")
             .select("employee_id, employee_name")
@@ -546,19 +546,21 @@ def init_routes(app):
             .execute()
             .data
         )
-        form.employee_id.choices = [
+
+        form.employee_name.choices = [
             (e["employee_id"], e["employee_name"]) for e in employees
         ]
 
         if form.validate_on_submit():
-            employee_id = form.employee_id.data
+            employee_id = form.employee_name.data
             business_result = form.business_result.data
             individual_result = form.individual_result.data
             safety_result = form.safety_result.data
 
+            # Fetch employee data including pay grade
             employee_response = (
                 app.supabase.table("employees")
-                .select("pay_grade, salary")
+                .select("pay_grade")
                 .eq("employee_id", employee_id)
                 .execute()
             )
@@ -567,25 +569,49 @@ def init_routes(app):
                 return render_template("myteam_performance_evaluations.html", form=form)
 
             pay_grade = employee_response.data[0]["pay_grade"]
-            salary = employee_response.data[0]["salary"]
 
-            calculation_response = app.supabase.rpc(
-                "calculate_award",
-                {
-                    "base_salary": salary,
-                    "band": pay_grade,
-                    "business_result": business_result,
-                    "individual_result": individual_result,
-                    "safety_result": safety_result,
-                },
-            ).execute()
-
-            if calculation_response.error:
-                flash("Error calculating performance and bonus", "danger")
+            # Fetch pay grade details
+            pay_grade_response = (
+                app.supabase.table("pay_grades")
+                .select("*")
+                .eq("band", pay_grade)
+                .execute()
+            )
+            if pay_grade_response.error or not pay_grade_response.data:
+                flash("Error fetching pay grade data", "danger")
                 return render_template("myteam_performance_evaluations.html", form=form)
 
-            result = calculation_response.data[0]
+            pay_grade_data = pay_grade_response.data[0]
+            target_award = pay_grade_data["target_award"]
+            business_weight = pay_grade_data["business_weight"]
+            individual_weight = pay_grade_data["individual_weight"]
+            safety_weight = pay_grade_data["safety_weight"]
 
+            # Calculate weighted results
+            weighted_business = business_result * (business_weight / 100)
+            weighted_individual = individual_result * (individual_weight / 100)
+            weighted_safety = safety_result * (safety_weight / 100)
+            overall_performance = (
+                weighted_business + weighted_individual + weighted_safety
+            )
+
+            # Fetch salary
+            salary_response = (
+                app.supabase.table("salaries")
+                .select("current_salary")
+                .eq("employee_id", employee_id)
+                .execute()
+            )
+            if salary_response.error or not salary_response.data:
+                flash("Error fetching salary data", "danger")
+                return render_template("myteam_performance_evaluations.html", form=form)
+
+            salary = salary_response.data[0]["current_salary"]
+
+            # Calculate bonus payout
+            bonus_payout = salary * (overall_performance / 100) * (target_award / 100)
+
+            # Insert performance evaluation into the database
             app.supabase.table("performance_evaluations").insert(
                 {
                     "employee_id": employee_id,
@@ -593,37 +619,22 @@ def init_routes(app):
                     "business_result": business_result,
                     "individual_result": individual_result,
                     "safety_result": safety_result,
-                    "bonus_payout": result["total_award"],
+                    "bonus_payout": bonus_payout,
                 }
             ).execute()
 
             flash("Performance evaluation submitted successfully", "success")
-            return redirect(url_for("view_performance_evaluations"))
+            return redirect(url_for("myteam_performance_evaluations"))
 
         return render_template("myteam_performance_evaluations.html", form=form)
 
     @app.route("/people/performance_evaluations")
     def view_performance_evaluations():
-        evaluations = (
-            app.supabase.table("performance_evaluations")
-            .select(
-                "employee_id, evaluation_date, business_result, individual_result, safety_result, bonus_payout"
-            )
-            .execute()
-            .data
-        )
-        return render_template(
-            "view_performance_evaluations.html", evaluations=evaluations
-        )
-
-    @app.route("/myteam/performance_results")
-    def performance_results():
         if "user" not in session:
             flash("You need to be logged in to view this page.")
             return redirect(url_for("login"))
 
         user_id = session["user"]["id"]
-
         current_employee = (
             app.supabase.table("employees")
             .select("employee_id")
@@ -633,21 +644,16 @@ def init_routes(app):
         )
         current_employee_id = current_employee["employee_id"]
 
-        employees = (
-            app.supabase.table("employees")
-            .select("employee_id")
+        evaluations = (
+            app.supabase.table("performance_evaluations")
+            .select(
+                "employee_id, evaluation_date, business_result, individual_result, safety_result, bonus_payout"
+            )
             .eq("reports_to", current_employee_id)
             .execute()
             .data
         )
 
-        employee_ids = [employee["employee_id"] for employee in employees]
-        evaluations = (
-            app.supabase.table("performance_evaluations")
-            .select("*")
-            .in_("employee_id", employee_ids)
-            .execute()
-            .data
+        return render_template(
+            "view_performance_evaluations.html", evaluations=evaluations
         )
-
-        return render_template("performance_results.html", evaluations=evaluations)
