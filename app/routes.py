@@ -51,7 +51,7 @@ def init_routes(app):
         return render_template('login.html')
 
     @app.route('/register', methods=['GET', 'POST'])
-    def register():
+    def register():  # Currently INOP work in progress
         form = RegistrationForm()
         if form.validate_on_submit():
             hashed_password = bcrypt.generate_password_hash(
@@ -227,51 +227,7 @@ def init_routes(app):
 
     @app.route('/admin/add_user', methods=['GET', 'POST'])
     def add_user():
-        if 'user' not in session or session['user']['role'] != 'SuperUser':
-            flash('You need admin privileges to access this page.')
-            return redirect(url_for('login'))
-
-        form = RegistrationForm()
-        if request.method == 'POST':
-            employee_id = request.form['employee_id']
-            username = request.form['username']
-            password = request.form['password']
-            email = request.form['email']
-            role = request.form['role']
-            created_at = request.form['created_at']
-            updated_at = request.form['updated_at']
-            name = request.form['name']
-            status = request.form['status']
-
-            # Generate unique token for email confirmation
-            confirmation_token = str(uuid.uuid4())
-
-            # Hash password
-            hashed_password = bcrypt.generate_password_hash(
-                password).decode('utf-8')
-
-            if 'error' in response:
-                flash('Error creating user: ' + response['error']['message'])
-                return redirect(url_for('admin_dashboard'))
-
-            """
-            Store user data in a temporary table or cache (this part is simplified, you might need a proper temporary storage)
-            This example uses an in-memory dictionary, consider using a persistent store for production
-            """
-            app.config['PENDING_USERS'] = app.config.get(
-                'PENDING_USERS', {})
-            app.config['PENDING_USERS'][confirmation_token] = user_data
-
-            # Send confirmation email
-            confirmation_url = url_for(
-                'confirm_user', token=confirmation_token, _external=True)
-            email_body = f"Please click the following link to confirm your registration: {confirmation_url}"
-            app.send_email(email, "Confirm your registration", email_body)
-
-            flash("A confirmation email has been sent. Please check your inbox.", "info")
-            return redirect(url_for('routes.add_user'))
-
-        return render_template('add_user.html', form=form)
+        print("Not finished yet!!!!!")
 
     @app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
     def edit_user(user_id):
@@ -531,3 +487,6 @@ def init_routes(app):
             'employee_id, evaluation_date, business_result, individual_result, safety_result, bonus_payout'
         ).execute().data
         return render_template('view_performance_evaluations.html', evaluations=evaluations)
+
+    @app.route('/admin_dashboard/calculation_configuration')
+    # def calculation_configuration():

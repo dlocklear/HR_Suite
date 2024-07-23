@@ -112,6 +112,8 @@ table td {
   padding: 0.5rem;
   text-align: left;
   border: 1px solid #ccc;
+  color: black;
+  background-color: rgb(232, 232, 232);
 }
 
 table th {
