@@ -1,129 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
-    />
-    <link rel="stylesheet" href="/static/css/style.css" />
-    <link rel="stylesheet" href="/static/css/dashboard.css" />
-    <title>Dashboard</title>
-  </head>
-  <body>
-    <div class="banner container-fluid">
-      <div class="logo">
-        <img src="/static/img/LuxiumLogo.png" alt="Company Logo" />
-      </div>
-      <div class="top-right-links">
-        <a href="#">About</a>
-        <a href="#">Services</a>
-        <a href="/logout" class="logout-btn" role="button">Logout</a>
-      </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HR Suite{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <header>
+        <div class="banner container-fluid">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='img/LuxiumLogo.png') }}" alt="Company Logo">
+            </div>
+            <div class="top-right-links">
+                <a href="#">About</a>
+                <a href="#">Services</a>
+                <a href="{{ url_for('logout') }}" class="logout-btn" role="button">Logout</a>
+            </div>
+        </div>
+        <nav class="navigation">
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li>
+                    <a href="#">Resources</a>
+                    <ul class="dropdown">
+                        <li><a href="#">How to Guides</a></li>
+                        <li><a href="#">Community Resources</a></li>
+                        <li><a href="#">What's going on in Luxium?</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#">Myself</a>
+                    <ul class="dropdown">
+                        <li><a href="#">Wellness</a></li>
+                        <li><a href="#">Performance</a></li>
+                        <li><a href="{{ url_for('employment') }}">Employment</a></li>
+                        <li><a href="#">Leave</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#">People</a>
+                    <ul class="dropdown">
+                        <li><a href="#">Wellness</a></li>
+                        <li><a href="{{ url_for('view_performance_reviews') }}">Performance</a></li>
+                        <li><a href="#">Employment</a></li>
+                        <li><a href="#">Leave</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#">My Team</a>
+                    <ul class="dropdown">
+                        <li><a href="#">Wellness</a></li>
+                        <li><a href="{{ url_for('myteam_performance_evaluations') }}">Performance</a></li>
+                        <li><a href="{{ url_for('myteam_employment') }}">Employment</a></li>
+                        <li><a href="#">Leave</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#">Process</a>
+                    <ul class="dropdown">
+                        <li><a href="{{ url_for('electronic_services') }}">Electronic Services</a></li>
+                        <li><a href="#">Wellness</a></li>
+                        <li><a href="#">Performance</a></li>
+                        <li><a href="#">Leave</a></li>
+                    </ul>
+                </li>
+                <li><a href="#">Reports & Analytics</a></li>
+                <li><a href="{{ url_for('admin_dashboard') }}">Setup & Security</a></li>
+            </ul>
+        </nav>
+    </header>
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
     </div>
-
-    <nav class="navigation">
-      <ul>
-        <li><a href="#">Home</a></li>
-        <li>
-          <a href="#">Resources</a>
-          <ul class="dropdown">
-            <li><a href="#">How to Guides</a></li>
-            <li><a href="#">Community Resources</a></li>
-            <li><a href="#">Whats going on in Luxium?</a></li>
-          </ul>
-        </li>
-        <li>
-          <a href="#">Myself</a>
-          <ul class="dropdown">
-            <li><a href="#">Wellness</a></li>
-            <li><a href="#">Performance</a></li>
-            <li><a href="{{ url_for('employment') }}">Employment</a></li>
-            <li><a href="#">Leave</a></li>
-          </ul>
-        </li>
-        <li>
-          <a href="#">People</a>
-          <ul class="dropdown">
-            <li><a href="#">Wellness</a></li>
-            <li><a href="{{ url_for('view_performance_reviews')}}">Performance</a></li>
-            <li><a href="#">Employment</a></li>
-            <li><a href="#">Leave</a></li>
-          </ul>
-        </li>
-        <li>
-          <a href="#">MyTeam</a>
-          <ul class="dropdown">
-            <li><a href="#">Wellness</a></li>
-            <li><a href="{{ url_for('myteam_performance_evaluations') }}">Performance</a></li>
-            <li><a href="{{ url_for('myteam_employment') }}">Employment</a></li>
-            <li><a href="#">Leave</a></li>
-          </ul>
-        </li>
-        <li>
-          <a href="#">Process</a>
-          <ul class="dropdown">
-            <li><a href="{{url_for('electronic_services')}}">Electronic Services</a></li>
-            <li><a href="#">Wellness</a></li>
-            <li><a href="#">Performance</a></li>
-            <li><a href="#">Leave</a></li>
-          </ul>
-        </li>
-        <li>
-          <a href="#">Reports & Analytics</a>
-          </ul>
-        </li>
-        <li>
-          <a href="{{ url_for('admin_dashboard') }}">Setup & Security</a>
-          </ul>
-        </li>
-      </ul>
-    </nav>
-
-    <section class="carousel">
-      <div class="carousel-images">
-        <img src="/static/img/Team 1.png" alt="Team 1" />
-        <img src="/static/img/Workable_1.png" alt="Team 2" />
-        <img src="/static/img/LuxiumLogo.png" alt="Team 3" />
-      </div>
-    </section>
-
-    <div class="hr-banner">
-      <div class="container-fluid">
-        <a href="#" class="left-link">Meet HR Team</a>
-        <a href="mailto:LS.US.Luxium.HR@luxiumsolutions.com" class="right-link">Contact HR</a>
-      </div>
-    </div>
-
-    <main class="container">
-      <div class="grid">
-        <div class="tile">
-          <a href="https://luxium-solutions-llc.workable.com/referrals" target="_blank">
-            Refer A Candidate
-            <img src="/static/img/Workable_Ref_QR Code.png" alt="Workable Logo" />
-          </a>
-        </div>
-        <div class="tile">
-          <a href="form-page.html" target="_blank">
-            Recognize an Employee
-            <img src="/static/img/Recognition_Logo.png" alt="Recognition Logo" />
-          </a>
-        </div>
-        <div class="tile">
-          <a href="https://online.adp.com/signin/v1/?APPID=WFNPortal&productId=80e309c3-7085-bae1-e053-3505430b5495&returnURL=https://workforcenow.adp.com/&callingAppId=WFN&TARGET=-SM-https://workforcenow.adp.com/theme/index.html" target="_blank">
-            ADP Login
-            <img src="/static/img/ADP_LOGO.jpg" alt="ADP Logo" />
-          </a>
-        </div>
-        <div class="tile">
-          <a href="#" target="_blank">
-            Discounts
-            <img src="/static/img/Discounts_Logo.png" alt="Discounts Logo" />
-          </a>
-        </div>
-      </div>
-    </main>
-    <script src="/static/js/carousel.js"></script>
-  </body>
+    {% endif %}
+    {% endwith %}
+    <main>{% block content %}{% endblock %}</main>
+    <footer>
+        <p>© 2024 Luxium Solutions</p>
+    </footer>
+</body>
 </html>
