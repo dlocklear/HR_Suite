@@ -9,6 +9,7 @@ from flask import (
     redirect,
     url_for,
     flash,
+    send_file,
 )
 from supabase import create_client
 from app.forms import (
@@ -30,6 +31,14 @@ import traceback
 from werkzeug.utils import secure_filename
 
 logging.basicConfig(level=logging.DEBUG)
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in {
+        "pdf",
+        "docx",
+        "csv",
+    }
 
 
 def init_routes(app):
@@ -429,78 +438,49 @@ def init_routes(app):
 
         return render_template(f"{form_type}_form.html", form=form)
 
-    @app.route("/get_employee_details", methods=["GET"])
+    @app.route('/get_employee_details', methods=['GET'])
     def get_employee_details():
-        employee_name = request.args.get("employee_name")
+        employee_name = request.args.get('employee_name')
         if not employee_name:
-            return jsonify({"error": "Employee name is required"}), 400
+            return jsonify({'error': 'Employee name is required'}), 400
 
         try:
             cleaned_employee_name = employee_name.strip().lower()
-            logging.debug(
-                f"Searching for employee with cleaned name: {cleaned_employee_name}"
-            )
+            logging.debug(f"Searching for employee with cleaned name: {cleaned_employee_name}")
 
-            response = app.supabase.table("employees").select("*").execute()
+            # Perform the query with explicit casting
+            response = app.supabase.table('employees').select('*').execute()
             if response.error:
                 logging.error(f"Supabase error: {response.error}")
-                return (
-                    jsonify(
-                        {"error": "Supabase error", "message": response.error.message}
-                    ),
-                    500,
-                )
+                return jsonify({'error': 'Supabase error', 'message': response.error.message}), 500
 
-            employees = [
-                emp
-                for emp in response.data
-                if cleaned_employee_name in emp["employee_name"].lower()
-            ]
+            # Filter response data for partial match
+            employees = [emp for emp in response.data if cleaned_employee_name in emp['employee_name'].lower()]
 
             if not employees:
-                logging.warning(
-                    f"No employee found for cleaned name: {cleaned_employee_name}"
-                )
-                return jsonify({"error": "Employee not found"}), 404
+                logging.warning(f"No employee found for cleaned name: {cleaned_employee_name}")
+                return jsonify({'error': 'Employee not found'}), 404
 
             employee = employees[0]
             logging.debug(f"Employee data: {employee}")
 
-            supervisor_response = (
-                app.supabase.table("employees")
-                .select("title")
-                .eq("employee_id", employee["reports_to"])
-                .execute()
-            )
+            # Fetch supervisor data
+            supervisor_response = app.supabase.table('employees').select('title').eq('employee_id', employee['reports_to']).execute()
             logging.debug(f"Supervisor response: {supervisor_response}")
 
             if supervisor_response.error:
-                logging.error(
-                    f"Supabase error (supervisor): {supervisor_response.error}"
-                )
-                return (
-                    jsonify(
-                        {
-                            "error": "Supabase error (supervisor)",
-                            "message": supervisor_response.error.message,
-                        }
-                    ),
-                    500,
-                )
+                logging.error(f"Supabase error (supervisor): {supervisor_response.error}")
+                return jsonify({'error': 'Supabase error (supervisor)', 'message': supervisor_response.error.message}), 500
 
-            supervisor_position = (
-                supervisor_response.data[0]["title"] if supervisor_response.data else ""
-            )
+            supervisor_position = supervisor_response.data[0]['title'] if supervisor_response.data else ''
 
             result = {
-                "position_title": employee.get("title", "").strip(),
-                "position_id": employee.get("position_id", "").strip(),
-                "department": employee.get("department", "").strip(),
-                "company_code": employee.get("company_code", "").strip(),
-                "pay_grade": employee.get("pay_grade", "").strip(),
-                "supervisor_position": (
-                    supervisor_position.strip() if supervisor_position else ""
-                ),
+                'position_title': employee.get('title', '').strip(),
+                'position_id': employee.get('position_id', '').strip(),
+                'department': employee.get('department', '').strip(),
+                'company_code': employee.get('company_code', '').strip(),
+                'pay_grade': employee.get('pay_grade', '').strip(),
+                'supervisor_position': supervisor_position.strip() if supervisor_position else ''
             }
 
             logging.debug(f"Resulting JSON: {json.dumps(result)}")
@@ -509,7 +489,7 @@ def init_routes(app):
         except Exception as e:
             logging.error(f"Error fetching employee details: {e}")
             logging.error(traceback.format_exc())
-            return jsonify({"error": "Internal server error", "message": str(e)}), 500
+            return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
 
     @app.route("/myteam/performance_evaluations", methods=["GET", "POST"])
     def myteam_performance_evaluations():
