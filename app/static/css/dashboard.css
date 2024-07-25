@@ -172,8 +172,8 @@ body {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Create a 2x2 grid */
-  gap: 20px; /* Space between grid items */
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
 .tile {
@@ -243,3 +243,16 @@ footer {
   }
 }
 
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.btn-primary {
+  margin-top: 20px;
+}

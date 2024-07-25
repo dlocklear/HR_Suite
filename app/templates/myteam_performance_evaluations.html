@@ -1,27 +1,102 @@
-{% extends "base.html" %}
-{% block title %}My Team Performance Evaluations{% endblock %}
-{% block content %}
-<div class="container">
-    <h1>Performance Evaluation</h1>
-    <form method="POST">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
+    <title>My Team Performance Evaluations</title>
+  </head>
+  <body>
+    <div class="banner container-fluid">
+      <div class="logo">
+        <img src="/static/img/LuxiumLogo.png" alt="Company Logo" />
+      </div>
+      <div class="top-right-links">
+        <a href="#">About</a>
+        <a href="#">Services</a>
+        <a href="/logout" class="logout-btn" role="button">Logout</a>
+      </div>
+    </div>
+    <nav class="navigation">
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li>
+          <a href="#">Resources</a>
+          <ul class="dropdown">
+            <li><a href="#">How to Guides</a></li>
+            <li><a href="#">Community Resources</a></li>
+            <li><a href="#">Whats going on in Luxium?</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#">Myself</a>
+          <ul class="dropdown">
+            <li><a href="#">Wellness</a></li>
+            <li><a href="#">Performance</a></li>
+            <li><a href="{{ url_for('employment') }}">Employment</a></li>
+            <li><a href="#">Leave</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#">People</a>
+          <ul class="dropdown">
+            <li><a href="#">Wellness</a></li>
+            <li><a href="{{ url_for('view_performance_reviews') }}">Performance</a></li>
+            <li><a href="#">Employment</a></li>
+            <li><a href="#">Leave</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#">My Team</a>
+          <ul class="dropdown">
+            <li><a href="#">Wellness</a></li>
+            <li><a href="{{ url_for('myteam_performance_evaluations') }}">Performance</a></li>
+            <li><a href="{{ url_for('myteam_employment') }}">Employment</a></li>
+            <li><a href="#">Leave</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#">Process</a>
+          <ul class="dropdown">
+            <li><a href="{{ url_for('electronic_services') }}">Electronic Services</a></li>
+            <li><a href="#">Wellness</a></li>
+            <li><a href="#">Performance</a></li>
+            <li><a href="#">Leave</a></li>
+          </ul>
+        </li>
+        <li><a href="#">Reports & Analytics</a></li>
+        <li><a href="{{ url_for('admin_dashboard') }}">Setup & Security</a></li>
+      </ul>
+    </nav>
+    <div class="container">
+      <h1>Performance Evaluation</h1>
+      <form method="POST">
         {{ form.hidden_tag() }}
-        <div class="form-group">
+        <div class="grid">
+          <div class="form-group">
             <label for="employee_id">Employee</label>
             {{ form.employee_id(class="form-control") }}
-        </div>
-        <div class="form-group">
+          </div>
+          <div class="form-group">
             <label for="business_result">Business Result (%)</label>
             {{ form.business_result(class="form-control") }}
-        </div>
-        <div class="form-group">
+          </div>
+          <div class="form-group">
             <label for="individual_result">Individual Result (%)</label>
             {{ form.individual_result(class="form-control") }}
-        </div>
-        <div class="form-group">
+          </div>
+          <div class="form-group">
             <label for="safety_result">Safety Result (%)</label>
             {{ form.safety_result(class="form-control") }}
+          </div>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-</div>
-{% endblock %}
+      </form>
+    </div>
+  </body>
+</html>
