@@ -2,23 +2,31 @@ body {
   background-color: #e3e3e3; /* Lighter gray for overall background */
   font-family: Arial, sans-serif; /* Ensuring a consistent font is used */
   margin: 0; /* Remove default body margin */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-.banner, .navigation, .hr-banner {
+.wrapper {
+  flex: 1; /* Take up remaining space to push HR banner to the bottom */
+}
+
+.banner,
+.navigation,
+.container {
   width: 100%;
-  max-width: 1200px; /* Max width to center the content */
-  margin: 0 auto; /* Center the banner, navigation, and HR banner */
+  margin: 0; /* Remove auto centering */
   padding: 10px; /* Add some padding */
   box-sizing: border-box; /* Ensure padding is included in the element's total width and height */
 }
 
 .banner {
-  background-color: #213f86; /* Dark blue background */
+  background-color: #67b1ff; /* Dark blue background */
   color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 2px solid black; /* Bold black border */
+  border: none;
 }
 
 .banner .logo img {
@@ -32,9 +40,10 @@ body {
 }
 
 .top-right-links a {
-  color: white;
+  color: #ffffff;
   text-decoration: none;
   padding: 10px;
+  transition: background-color 0.3s, color 0.3s; /* Smooth transition */
 }
 
 .top-right-links .logout-btn {
@@ -46,12 +55,15 @@ body {
 .top-right-links a:hover,
 .top-right-links a:focus {
   text-decoration: underline;
+  background-color: #1f2a44; /* Slight background change on hover */
 }
 
 .navigation {
   background-color: #ffffff; /* White background for navigation */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border: 2px solid black; /* Bold black border */
+  border: none;
+  display: flex;
+  justify-content: center; /* Center the navigation bar content */
 }
 
 .navigation ul {
@@ -59,7 +71,7 @@ body {
   padding: 0;
   margin: 0;
   display: flex; /* Use flexbox for better alignment */
-  justify-content: center; /* Center the items */
+  justify-content: center; /* Center the navigation items */
   flex-wrap: wrap; /* Wrap items on smaller screens */
   position: relative;
 }
@@ -73,12 +85,14 @@ body {
   color: #1f2a44;
   text-decoration: none;
   padding: 10px;
-  transition: color 0.3s;
+  transition: color 0.3s, background-color 0.3s; /* Smooth transition */
 }
 
 .navigation ul li a:hover,
 .navigation ul li a:focus {
   color: #ff6600; /* Subtle change for hover and focus */
+  background-color: #f0f0f0; /* Light background on hover */
+  border-radius: 4px; /* Rounded corners for hover effect */
 }
 
 .navigation ul li .dropdown {
@@ -87,9 +101,12 @@ body {
   top: 100%;
   left: 0;
   background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Softer shadow */
   padding: 10px;
   z-index: 1000;
+  border-radius: 8px; /* Rounded corners for dropdown */
+  min-width: 220px; /* Increase minimum width for dropdown */
+  overflow: hidden; /* Ensure content is not overflowing */
 }
 
 .navigation ul li:hover > .dropdown,
@@ -102,33 +119,44 @@ body {
 }
 
 .navigation ul li .dropdown li a {
-  padding: 10px;
+  padding: 10px 15px; /* Better spacing */
   display: block;
-  width: 200px;
+  width: 100%;
+  white-space: nowrap; /* Ensure text does not wrap */
+  transition: background-color 0.3s, color 0.3s; /* Smooth transition */
 }
 
 .navigation ul li .dropdown li a:hover,
 .navigation ul li .dropdown li a:focus {
-  background-color: #f8f9fa;
+  background-color: #f0f0f0;
   color: #ff6600;
+  border-radius: 4px; /* Rounded corners on hover */
 }
 
 .carousel {
-  width: 100%;
-  max-width: 1200px; /* Max width to center the content */
+  width: 60%;
   margin: 0 auto; /* Center the carousel */
   position: relative; /* Positioning context for navigation */
+  border-radius: 8px; /* Rounded corners for modern look */
+  overflow: hidden; /* Ensure overflow is hidden for rounded corners */
+  display: flex; /* Use flexbox to center the carousel */
+  justify-content: center; /* Center the content */
+  height: 350px; /* Set a fixed height for the carousel */
 }
 
 .carousel-images {
   display: flex;
   overflow: hidden;
+  border-radius: 8px; /* Ensure images have rounded corners */
+  width: 100%;
+  height: 100%;
 }
 
 .carousel-images img {
   width: 100%;
-  height: auto;
-  max-height: 350px; /* Set a maximum height */
+  height: 100%; /* Ensure images fill the carousel container */
+  object-fit: contain; /* Ensure images maintain aspect ratio and fit within the container */
+  transition: opacity 0.5s ease; /* Smooth transition for carousel */
 }
 
 .carousel-images img:not(:first-child) {
@@ -137,9 +165,12 @@ body {
 
 .hr-banner {
   background-color: #f8f9fa; /* Light background for HR banner */
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  border: 2px solid black; /* Bold black border */
+  border: none;
+  border-radius: 8px; /* Rounded corners for modern look */
+  margin: 20px 0; /* Add margin for spacing */
+  position: relative;
+  bottom: 0;
+  width: 100%;
 }
 
 .hr-banner .container-fluid {
@@ -161,18 +192,22 @@ body {
 }
 
 .container {
-  background: #f1eded; /* White background for the container */
+  background: #ffffff; /* White background for the container */
   padding: 2rem; /* Adjusted padding for better spacing */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); /* Softer shadow */
-  margin: 0px auto; /* Center the container and add top margin */
-  max-width: 1200px; /* Set a maximum width */
-  border: 2px solid black; /* Bold black border */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Softer shadow */
+  margin: 20px 0; /* Center the container and add top margin */
+  max-width: 100%; /* Set a maximum width */
+  border: none;
+  border-radius: 8px; /* Rounded corners for modern look */
   font-size: large;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(200px, 1fr)
+  ); /* Responsive columns */
   gap: 20px;
 }
 
@@ -188,6 +223,7 @@ body {
   justify-content: center;
   text-align: center; /* Center align text */
   height: 250px; /* Fixed height for uniform tiles */
+  border-radius: 8px; /* Rounded corners for modern look */
 }
 
 .tile a {
@@ -195,6 +231,7 @@ body {
   color: #1f2a44;
   font-weight: bold;
   margin-bottom: 10px; /* Space between title and image */
+  transition: color 0.3s; /* Smooth transition for hover */
 }
 
 .tile img {
@@ -241,12 +278,6 @@ footer {
   .tile {
     height: auto; /* Allow tiles to adjust height */
   }
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
 }
 
 .form-group {

@@ -1,120 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-</head>
-<body>
-    <div class="banner container-fluid">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/dashboard.css') }}"
+    />
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="banner container-fluid">
         <div class="logo">
-            <img src="{{ url_for('static', filename='img/LuxiumLogo.png') }}" alt="Company Logo">
+          <img
+            src="{{ url_for('static', filename='img/LuxiumLogo.png') }}"
+            alt="Company Logo"
+          />
         </div>
         <div class="top-right-links">
-            <a href="#">About</a>
-            <a href="#">Services</a>
-            <a href="{{ url_for('logout') }}" class="logout-btn" role="button">Logout</a>
+          <a href="#">About</a>
+          <a href="#">Services</a>
+          <a href="{{ url_for('logout') }}" class="logout-btn" role="button"
+            >Logout</a
+          >
         </div>
-    </div>
+      </div>
 
-    <nav class="navigation">
+      <nav class="navigation">
         <ul>
-            <li><a href="#">Home</a></li>
-            <li>
-                <a href="#">Resources</a>
-                <ul class="dropdown">
-                    <li><a href="#">How to Guides</a></li>
-                    <li><a href="#">Community Resources</a></li>
-                    <li><a href="#">What's going on in Luxium?</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="#">Myself</a>
-                <ul class="dropdown">
-                    <li><a href="#">Wellness</a></li>
-                    <li><a href="#">Performance</a></li>
-                    <li><a href="{{ url_for('employment') }}">Employment</a></li>
-                    <li><a href="#">Leave</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="#">People</a>
-                <ul class="dropdown">
-                    <li><a href="#">Wellness</a></li>
-                    <li><a href="{{ url_for('view_performance_reviews') }}">Performance</a></li>
-                    <li><a href="#">Employment</a></li>
-                    <li><a href="#">Leave</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="#">My Team</a>
-                <ul class="dropdown">
-                    <li><a href="#">Wellness</a></li>
-                    <li><a href="{{ url_for('myteam_performance_evaluations') }}">Performance</a></li>
-                    <li><a href="{{ url_for('myteam_employment') }}">Employment</a></li>
-                    <li><a href="#">Leave</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="#">Process</a>
-                <ul class="dropdown">
-                    <li><a href="{{ url_for('electronic_services') }}">Electronic Services</a></li>
-                    <li><a href="#">Wellness</a></li>
-                    <li><a href="#">Performance</a></li>
-                    <li><a href="#">Leave</a></li>
-                </ul>
-            </li>
-            <li><a href="#">Reports & Analytics</a></li>
-            <li><a href="{{ url_for('admin_dashboard') }}">Setup & Security</a></li>
+          <li><a href="{{ url_for('dashboard')}}">Home</a></li>
+          <li>
+            <a href="#">Resources</a>
+            <ul class="dropdown">
+              <li><a href="#">How to Guides</a></li>
+              <li><a href="#">Community Resources</a></li>
+              <li><a href="#">What's going on in Luxium?</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="#">Myself</a>
+            <ul class="dropdown">
+              <li><a href="#">Wellness</a></li>
+              <li><a href="#">Performance</a></li>
+              <li><a href="{{ url_for('employment') }}">Employment</a></li>
+              <li><a href="#">Leave</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="#">People</a>
+            <ul class="dropdown">
+              <li><a href="#">Wellness</a></li>
+              <li>
+                <a href="{{ url_for('view_performance_reviews') }}"
+                  >Performance</a
+                >
+              </li>
+              <li><a href="#">Employment</a></li>
+              <li><a href="#">Leave</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="#">My Team</a>
+            <ul class="dropdown">
+              <li><a href="#">Wellness</a></li>
+              <li>
+                <a href="{{ url_for('myteam_performance_evaluations') }}"
+                  >Performance</a
+                >
+              </li>
+              <li>
+                <a href="{{ url_for('myteam_employment') }}">Employment</a>
+              </li>
+              <li><a href="#">Leave</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="#">Process</a>
+            <ul class="dropdown">
+              <li>
+                <a href="{{ url_for('electronic_services') }}"
+                  >Electronic Services</a
+                >
+              </li>
+              <li><a href="#">Wellness</a></li>
+              <li><a href="#">Performance</a></li>
+              <li><a href="#">Leave</a></li>
+            </ul>
+          </li>
+          <li><a href="#">Reports & Analytics</a></li>
+          <li>
+            <a href="{{ url_for('admin_dashboard') }}">Setup & Security</a>
+          </li>
         </ul>
-    </nav>
+      </nav>
 
-    <section class="carousel">
+      <section class="carousel">
         <div class="carousel-images">
-            <img src="{{ url_for('static', filename='img/Team 1.png') }}" alt="Team 1">
-            <img src="{{ url_for('static', filename='img/Workable_1.png') }}" alt="Team 2">
-            <img src="{{ url_for('static', filename='img/LuxiumLogo.png') }}" alt="Team 3">
+          <img
+            src="{{ url_for('static', filename='img/Team 1.png') }}"
+            alt="Team 1"
+          />
+          <img
+            src="{{ url_for('static', filename='img/Workable_1.png') }}"
+            alt="Team 2"
+          />
+          <img
+            src="{{ url_for('static', filename='img/LuxiumLogo.png') }}"
+            alt="Team 3"
+          />
         </div>
-    </section>
+      </section>
+
+      <main class="container">
+        <div class="grid">
+          <div class="tile">
+            <a
+              href="https://luxium-solutions-llc.workable.com/referrals"
+              target="_blank"
+            >
+              Refer A Candidate
+              <img
+                src="{{ url_for('static', filename='img/Workable_Ref_QR Code.png') }}"
+                alt="Workable Logo"
+              />
+            </a>
+          </div>
+          <div class="tile">
+            <a href="form-page.html" target="_blank">
+              Recognize an Employee
+              <img
+                src="{{ url_for('static', filename='img/Recognition_Logo.png') }}"
+                alt="Recognition Logo"
+              />
+            </a>
+          </div>
+          <div class="tile">
+            <a
+              href="https://online.adp.com/signin/v1/?APPID=WFNPortal&productId=80e309c3-7085-bae1-e053-3505430b5495&returnURL=https://workforcenow.adp.com/&callingAppId=WFN&TARGET=-SM-https://workforcenow.adp.com/theme/index.html"
+              target="_blank"
+            >
+              ADP Login
+              <img
+                src="{{ url_for('static', filename='img/ADP_LOGO.jpg') }}"
+                alt="ADP Logo"
+              />
+            </a>
+          </div>
+          <div class="tile">
+            <a href="#" target="_blank">
+              Discounts
+              <img
+                src="{{ url_for('static', filename='img/Discounts_Logo.png') }}"
+                alt="Discounts Logo"
+              />
+            </a>
+          </div>
+        </div>
+      </main>
+    </div>
 
     <div class="hr-banner">
-        <div class="container-fluid">
-            <a href="#" class="left-link">Meet HR Team</a>
-            <a href="mailto:LS.US.Luxium.HR@luxiumsolutions.com" class="right-link">Contact HR</a>
-        </div>
+      <div class="container-fluid">
+        <a href="#" class="left-link">Meet HR Team</a>
+        <a href="mailto:LS.US.Luxium.HR@luxiumsolutions.com" class="right-link"
+          >Contact HR</a
+        >
+      </div>
     </div>
 
-    <main class="container">
-        <div class="grid">
-            <div class="tile">
-                <a href="https://luxium-solutions-llc.workable.com/referrals" target="_blank">
-                    Refer A Candidate
-                    <img src="{{ url_for('static', filename='img/Workable_Ref_QR Code.png') }}" alt="Workable Logo">
-                </a>
-            </div>
-            <div class="tile">
-                <a href="form-page.html" target="_blank">
-                    Recognize an Employee
-                    <img src="{{ url_for('static', filename='img/Recognition_Logo.png') }}" alt="Recognition Logo">
-                </a>
-            </div>
-            <div class="tile">
-                <a href="https://online.adp.com/signin/v1/?APPID=WFNPortal&productId=80e309c3-7085-bae1-e053-3505430b5495&returnURL=https://workforcenow.adp.com/&callingAppId=WFN&TARGET=-SM-https://workforcenow.adp.com/theme/index.html" target="_blank">
-                    ADP Login
-                    <img src="{{ url_for('static', filename='img/ADP_LOGO.jpg') }}" alt="ADP Logo">
-                </a>
-            </div>
-            <div class="tile">
-                <a href="#" target="_blank">
-                    Discounts
-                    <img src="{{ url_for('static', filename='img/Discounts_Logo.png') }}" alt="Discounts Logo">
-                </a>
-            </div>
-        </div>
-    </main>
     <script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
-</body>
+  </body>
 </html>
