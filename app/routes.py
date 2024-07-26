@@ -1,5 +1,6 @@
 import logging
 import datetime
+from decimal import Decimal
 from flask import (
     Flask,
     render_template,
@@ -32,14 +33,12 @@ from werkzeug.utils import secure_filename
 
 logging.basicConfig(level=logging.DEBUG)
 
-
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in {
         "pdf",
         "docx",
         "csv",
     }
-
 
 def init_routes(app):
     @app.route("/")
@@ -523,7 +522,7 @@ def init_routes(app):
                     flash('Salary data not found', 'danger')
                     return redirect(url_for('myteam_performance_evaluations'))
 
-                salary = salary_response.data[0]['current_salary']
+                salary = Decimal(salary_response.data[0]['current_salary'])
                 pay_band_response = app.supabase.table('pay_bands').select('*').eq('band', pay_grade).execute()
                 if not pay_band_response.data:
                     flash('Pay band data not found', 'danger')
@@ -531,35 +530,42 @@ def init_routes(app):
 
                 pay_band = pay_band_response.data[0]
 
-                target_award = pay_band['target_award']
-                business_weight = pay_band['business_weight']
-                individual_weight = pay_band['individual_weight']
-                safety_weight = pay_band['safety_weight']
+                # Convert values to Decimal
+                target_award = Decimal(pay_band['target_award'])
+                business_weight = Decimal(pay_band['business_weight'])
+                individual_weight = Decimal(pay_band['individual_weight'])
+                safety_weight = Decimal(pay_band['safety_weight'])
 
-                business_result = business_result / 100.0
-                individual_result = individual_result / 100.0
-                safety_result = safety_result / 100.0
+                # Convert results to Decimal and calculate
+                business_result = Decimal(business_result) / Decimal(100)
+                individual_result = Decimal(individual_result) / Decimal(100)
+                safety_result = Decimal(safety_result) / Decimal(100)
 
+                # Calculate target bonus
                 target_bonus = salary * target_award
                 business_contribution = target_bonus * business_weight
                 individual_contribution = target_bonus * individual_weight
                 safety_contribution = target_bonus * safety_weight
 
+                # Calculate actual bonus payout
                 actual_business = business_contribution * business_result
                 actual_individual = individual_contribution * individual_result
                 actual_safety = safety_contribution * safety_result
 
                 bonus_payout = actual_business + actual_individual + actual_safety
 
-                app.supabase.table('performance_reviews').insert({
+                # Prepare data for insertion
+                data = {
                     'employee_id': employee_id,
-                    'business_result': business_result,
-                    'individual_result': individual_result,
-                    'safety_result': safety_result,
-                    'bonus_payout': bonus_payout,
-                    'evaluation_date': datetime.date.today(),
-                    'submitted_at': datetime.datetime.now()
-                }).execute()
+                    'business_result': float(business_result),
+                    'individual_result': float(individual_result),
+                    'safety_result': float(safety_result),
+                    'bonus_payout': float(bonus_payout),
+                    'evaluation_date': datetime.date.today().isoformat(),  # Convert date to string
+                    'submitted_at': datetime.datetime.now().isoformat()    # Convert datetime to string
+                }
+
+                app.supabase.table('performance_reviews').insert(data).execute()
 
                 flash("Evaluation submitted successfully.", "success")
                 return redirect(url_for('myteam_performance_evaluations'))

@@ -10,7 +10,7 @@ from wtforms import (
     DecimalField,
     FloatField,
 )
-from wtforms.validators import DataRequired, Email, EqualTo, Length, NumberRange
+from wtforms.validators import DataRequired, Email, EqualTo, Length, NumberRange, InputRequired, number_range
 
 
 class RegistrationForm(FlaskForm):
@@ -189,11 +189,12 @@ class AnonymousComplaintForm(FlaskForm):
     )
     details = TextAreaField("Details", validators=[DataRequired()])
     submit = SubmitField("Submit")
-
+    
+# Form class
 class PerformanceEvaluationForm(FlaskForm):
-    employee_id = SelectField('Employee', validators=[DataRequired()])
-    business_result = DecimalField('Business Result (%)', validators=[DataRequired()])
-    individual_result = DecimalField('Individual Result (%)', validators=[DataRequired()])
-    safety_result = DecimalField('Safety Result (%)', validators=[DataRequired()])
+    employee_id = SelectField('Employee', validators=[InputRequired()])
+    business_result = DecimalField('Business Result (%)', validators=[InputRequired(), NumberRange(min=0, max=100)])
+    individual_result = DecimalField('Individual Result (%)', validators=[InputRequired(), NumberRange(min=0, max=100)])
+    safety_result = DecimalField('Safety Result (%)', validators=[InputRequired(), NumberRange(min=0, max=100)])
     submit = SubmitField('Submit')
 
