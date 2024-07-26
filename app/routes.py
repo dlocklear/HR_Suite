@@ -448,13 +448,11 @@ def init_routes(app):
             cleaned_employee_name = employee_name.strip().lower()
             logging.debug(f"Searching for employee with cleaned name: {cleaned_employee_name}")
 
-            # Perform the query with explicit casting
             response = app.supabase.table('employees').select('*').execute()
             if response.error:
                 logging.error(f"Supabase error: {response.error}")
                 return jsonify({'error': 'Supabase error', 'message': response.error.message}), 500
 
-            # Filter response data for partial match
             employees = [emp for emp in response.data if cleaned_employee_name in emp['employee_name'].lower()]
 
             if not employees:
@@ -464,7 +462,6 @@ def init_routes(app):
             employee = employees[0]
             logging.debug(f"Employee data: {employee}")
 
-            # Fetch supervisor data
             supervisor_response = app.supabase.table('employees').select('title').eq('employee_id', employee['reports_to']).execute()
             logging.debug(f"Supervisor response: {supervisor_response}")
 
@@ -491,119 +488,87 @@ def init_routes(app):
             logging.error(traceback.format_exc())
             return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
 
-    @app.route("/myteam/performance_evaluations", methods=["GET", "POST"])
+    @app.route('/myteam/performance_evaluations', methods=['GET', 'POST'])
     def myteam_performance_evaluations():
-        if "user" not in session:
-            flash("You need to be logged in to view this page.")
-            return redirect(url_for("login"))
-
-        user_id = session["user"]["id"]
         form = PerformanceEvaluationForm()
 
-        # Fetch employees reporting to the current user
-        current_employee = (
-            app.supabase.table("employees")
-            .select("employee_id")
-            .eq("auth_user_id", user_id)
-            .execute()
-            .data[0]
-        )
-        current_employee_id = current_employee["employee_id"]
-        employees = (
-            app.supabase.table("employees")
-            .select("employee_name, employee_id")
-            .eq("reports_to", current_employee_id)
-            .execute()
-            .data
-        )
-
-        form.employee_id.choices = [
-            (employee["employee_id"], employee["employee_name"])
-            for employee in employees
-        ]
+        # Fetch employees for the dropdown
+        try:
+            user_id = session['user']['id']
+            current_employee = app.supabase.table('employees').select('employee_id').eq('auth_user_id', user_id).execute().data[0]
+            current_employee_id = current_employee['employee_id']
+            employees = app.supabase.table('employees').select('employee_name, employee_id').eq('reports_to', current_employee_id).execute().data
+            form.employee_id.choices = [(employee['employee_id'], employee['employee_name']) for employee in employees]
+        except Exception as e:
+            logging.error(f"Error fetching employees: {e}")
+            flash("Error fetching employees.", "danger")
+            form.employee_id.choices = []
 
         if form.validate_on_submit():
-            employee_id = form.employee_id.data
-            business_result = form.business_result.data
-            individual_result = form.individual_result.data
-            safety_result = form.safety_result.data
+            try:
+                employee_id = form.employee_id.data
+                business_result = form.business_result.data
+                individual_result = form.individual_result.data
+                safety_result = form.safety_result.data
 
-            # Fetch pay grade and salary
-            position_response = (
-                app.supabase.table("position")
-                .select("pay_grade")
-                .eq("employee_id", employee_id)
-                .execute()
-            )
-            if not position_response.data:
-                flash("Error fetching pay grade data", "danger")
-                return render_template("myteam_performance_evaluations.html", form=form)
+                # Correct query now that employee_id is in position table
+                position_response = app.supabase.table('position').select('pay_grade').eq('employee_id', employee_id).execute()
+                if not position_response.data:
+                    flash('Position data not found', 'danger')
+                    return redirect(url_for('myteam_performance_evaluations'))
 
-            pay_grade = position_response.data[0]["pay_grade"]
-            salary_response = (
-                app.supabase.table("salaries")
-                .select("current_salary")
-                .eq("employee_id", employee_id)
-                .execute()
-            )
-            if not salary_response.data:
-                flash("Error fetching salary data", "danger")
-                return render_template("myteam_performance_evaluations.html", form=form)
+                pay_grade = position_response.data[0]['pay_grade']
+                salary_response = app.supabase.table('salaries').select('current_salary').eq('employee_id', employee_id).execute()
+                if not salary_response.data:
+                    flash('Salary data not found', 'danger')
+                    return redirect(url_for('myteam_performance_evaluations'))
 
-            salary = salary_response.data[0]["current_salary"]
+                salary = salary_response.data[0]['current_salary']
+                pay_band_response = app.supabase.table('pay_bands').select('*').eq('band', pay_grade).execute()
+                if not pay_band_response.data:
+                    flash('Pay band data not found', 'danger')
+                    return redirect(url_for('myteam_performance_evaluations'))
 
-            # Fetch pay band details
-            pay_band_response = (
-                app.supabase.table("pay_bands")
-                .select("*")
-                .eq("band", pay_grade)
-                .execute()
-            )
-            if not pay_band_response.data:
-                flash("Error fetching pay band data", "danger")
-                return render_template("myteam_performance_evaluations.html", form=form)
+                pay_band = pay_band_response.data[0]
 
-            pay_band = pay_band_response.data[0]
+                target_award = pay_band['target_award']
+                business_weight = pay_band['business_weight']
+                individual_weight = pay_band['individual_weight']
+                safety_weight = pay_band['safety_weight']
 
-            # Calculate bonus payout
-            target_award = pay_band["target_award"]
-            business_weight = pay_band["business_weight"]
-            individual_weight = pay_band["individual_weight"]
-            safety_weight = pay_band["safety_weight"]
+                business_result = business_result / 100.0
+                individual_result = individual_result / 100.0
+                safety_result = safety_result / 100.0
 
-            business_result = business_result / 100.0
-            individual_result = individual_result / 100.0
-            safety_result = safety_result / 100.0
+                target_bonus = salary * target_award
+                business_contribution = target_bonus * business_weight
+                individual_contribution = target_bonus * individual_weight
+                safety_contribution = target_bonus * safety_weight
 
-            target_bonus = salary * target_award
-            business_contribution = target_bonus * business_weight
-            individual_contribution = target_bonus * individual_weight
-            safety_contribution = target_bonus * safety_weight
+                actual_business = business_contribution * business_result
+                actual_individual = individual_contribution * individual_result
+                actual_safety = safety_contribution * safety_result
 
-            actual_business = business_contribution * business_result
-            actual_individual = individual_contribution * individual_result
-            actual_safety = safety_contribution * safety_result
+                bonus_payout = actual_business + actual_individual + actual_safety
 
-            bonus_payout = actual_business + actual_individual + actual_safety
+                app.supabase.table('performance_reviews').insert({
+                    'employee_id': employee_id,
+                    'business_result': business_result,
+                    'individual_result': individual_result,
+                    'safety_result': safety_result,
+                    'bonus_payout': bonus_payout,
+                    'evaluation_date': datetime.date.today(),
+                    'submitted_at': datetime.datetime.now()
+                }).execute()
 
-            # Insert performance evaluation into the database
-            app.supabase.table("performance_reviews").insert(
-                {
-                    "employee_id": employee_id,
-                    "business_result": business_result,
-                    "individual_result": individual_result,
-                    "safety_result": safety_result,
-                    "bonus_payout": bonus_payout,
-                    "evaluation_date": datetime.date.today(),
-                    "submitted_at": datetime.datetime.now(),
-                    "submitted_by": current_employee_id,
-                }
-            ).execute()
+                flash("Evaluation submitted successfully.", "success")
+                return redirect(url_for('myteam_performance_evaluations'))
+            except Exception as e:
+                logging.error(f"Error processing form: {e}")
+                logging.error(traceback.format_exc())
+                flash("An error occurred while submitting the evaluation.", "danger")
 
-            flash("Performance evaluation submitted successfully", "success")
-            return redirect(url_for("myteam_performance_evaluations"))
-
-        return render_template("myteam_performance_evaluations.html", form=form)
+        return render_template('myteam_performance_evaluations.html', form=form)
 
     @app.route("/myteam/view_performance_reviews", methods=["GET"])
     def view_performance_reviews():

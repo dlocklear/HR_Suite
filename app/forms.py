@@ -190,17 +190,10 @@ class AnonymousComplaintForm(FlaskForm):
     details = TextAreaField("Details", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
-
 class PerformanceEvaluationForm(FlaskForm):
-    employee_id = SelectField("Employee", coerce=str, validators=[DataRequired()])
-    business_result = FloatField(
-        "Business Result (%)", validators=[DataRequired(), NumberRange(min=0, max=100)]
-    )
-    individual_result = FloatField(
-        "Individual Result (%)",
-        validators=[DataRequired(), NumberRange(min=0, max=100)],
-    )
-    safety_result = FloatField(
-        "Safety Result (%)", validators=[DataRequired(), NumberRange(min=0, max=100)]
-    )
-    submit = SubmitField("Submit")
+    employee_id = SelectField('Employee', validators=[DataRequired()])
+    business_result = DecimalField('Business Result (%)', validators=[DataRequired()])
+    individual_result = DecimalField('Individual Result (%)', validators=[DataRequired()])
+    safety_result = DecimalField('Safety Result (%)', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+

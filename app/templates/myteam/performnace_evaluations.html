@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Performance Evaluation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="form-container">
+        <h1>Performance Evaluation</h1>
+        <form action="{{ url_for('myteam_performance_evaluations') }}" method="POST">
+            {{ form.hidden_tag() }}
+            <div>
+                {{ form.employee_id.label }} {{ form.employee_id }}
+            </div>
+            <div>
+                {{ form.business_result.label }} {{ form.business_result }}
+            </div>
+            <div>
+                {{ form.individual_result.label }} {{ form.individual_result }}
+            </div>
+            <div>
+                {{ form.safety_result.label }} {{ form.safety_result }}
+            </div>
+            <div>
+                {{ form.submit }}
+            </div>
+        </form>
+    </div>
+</body>
+</html>

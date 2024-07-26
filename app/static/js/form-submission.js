@@ -1,20 +1,40 @@
-document.getElementById('evaluationForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    fetch(this.action, {
-        method: this.method,
-        body: new FormData(this),
-    }).then(response => response.json()).then(data => {
-        if (data.success) {
-            document.getElementById('notification').innerHTML = 'Evaluation submitted successfully!';
-            document.getElementById('notification').style.display = 'block';
-            this.reset();
-        } else {
-            document.getElementById('notification').innerHTML = 'Failed to submit evaluation.';
-            document.getElementById('notification').style.display = 'block';
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.querySelector("form");
+    const flashMessage = document.createElement("div");
+    flashMessage.classList.add("flash-message");
+    document.body.prepend(flashMessage);
+
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+        flashMessage.textContent = "";
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                flashMessage.textContent = "Evaluation submitted successfully.";
+                flashMessage.classList.add("success");
+                form.reset();
+            } else {
+                throw new Error("Error submitting evaluation");
+            }
+        } catch (error) {
+            flashMessage.textContent = "An error occurred while submitting the evaluation.";
+            flashMessage.classList.add("error");
         }
-    }).catch(error => {
-        console.error('Error:', error);
-        document.getElementById('notification').innerHTML = 'An error occurred.';
-        document.getElementById('notification').style.display = 'block';
+
+        setTimeout(() => {
+            flashMessage.textContent = "";
+            flashMessage.classList.remove("success", "error");
+        }, 5000);
     });
 });

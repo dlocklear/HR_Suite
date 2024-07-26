@@ -1,10 +1,9 @@
-html,
-body {
+body, html {
   height: 100%;
   margin: 0;
-  background-color: #f4f4f9; /* Light background for the entire page */
+  background-color: #f4f4f9;
   color: #333;
-  font-family: "Arial", sans-serif; /* Ensure consistent font family */
+  font-family: "Arial", sans-serif;
 }
 
 body {
@@ -14,7 +13,6 @@ body {
 
 header {
   background-color: #ffffff;
-  color: #fff;
   padding: 1rem 0;
   display: flex;
   align-items: center;
@@ -47,77 +45,30 @@ nav ul li a:hover {
   text-decoration: underline;
 }
 
-main {
-  flex: 1;
+.container {
+  background: #f1eded;
   padding: 2rem;
+  margin: 0px auto;
+  max-width: 1200px;
+  border: 2px solid black;
+  font-size: large;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
-.title-bar {
-  background-color: #007bff; /* Change this to your desired color */
-  padding: 1rem;
-  border-radius: 8px;
-  text-align: center;
-  margin-bottom: 2rem;
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
-.title-bar h1 {
-  margin: 0;
-  color: #fff; /* Ensure the text color contrasts with the background */
-  font-size: 2rem; /* Adjust font size if necessary */
-  font-family: "Arial", sans-serif; /* Ensure consistent font family */
-  font-weight: bold; /* Make the text bold */
-}
-
-.form-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 1rem;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.form-section {
+.form-group {
   margin-bottom: 20px;
 }
 
-.form-section div {
-  margin-bottom: 10px;
+.btn-primary {
+  margin-top: 20px;
 }
 
-.form-section label {
-  display: block;
-  margin-bottom: 5px;
-  color: #007bff; /* Set label color to blue */
-}
-
-.form-section input,
-.form-section select,
-.form-section textarea {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.form-section textarea {
-  height: 100px;
-}
-
-button,
-.button {
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  text-decoration: none;
-  font-size: 1rem;
-}
-
-button:hover,
-.button:hover {
-  background-color: #0056b3;
+#notification {
+  margin-top: 20px;
 }

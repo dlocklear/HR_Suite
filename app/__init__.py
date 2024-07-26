@@ -1,5 +1,5 @@
 import os
-from supabase import create_client, Client
+from supabase import create_client
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from config import Config
