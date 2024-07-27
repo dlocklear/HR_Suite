@@ -1,0 +1,159 @@
+/* Reset and basic styling */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f4f4f9;
+  font-family: "Arial", sans-serif;
+  color: #333;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s, background-color 0.3s;
+}
+
+/* Title Bar */
+.banner {
+  background-color: #213f86;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  border-bottom: 4px solid #007bff;
+}
+
+.banner .logo img {
+  height: 50px;
+}
+
+.top-right-links {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.top-right-links a {
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+.top-right-links .logout-btn {
+  background-color: #007bff;
+  padding: 0.5rem 1rem;
+}
+
+.top-right-links a:hover,
+.top-right-links a:focus {
+  background-color: #1f2a44;
+}
+
+/* Navigation Bar */
+.navigation {
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navigation ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  padding: 1rem 2rem;
+}
+
+.navigation ul li {
+  margin: 0 1rem;
+  position: relative;
+}
+
+.navigation ul li a {
+  color: #1f2a44;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+.navigation ul li a:hover,
+.navigation ul li a:focus {
+  background-color: #f0f0f0;
+  color: #007bff;
+}
+
+/* Dropdown Menu */
+.navigation ul li .dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 220px;
+}
+
+.navigation ul li:hover > .dropdown,
+.navigation ul li:focus-within > .dropdown {
+  display: block;
+}
+
+.navigation ul li .dropdown li a {
+  padding: 10px 15px;
+  display: block;
+  white-space: nowrap;
+}
+
+.navigation ul li .dropdown li a:hover,
+.navigation ul li .dropdown li a:focus {
+  background-color: #f0f0f0;
+  color: #007bff;
+  border-radius: 4px;
+}
+
+/* Utility Classes */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-1 {
+  margin-top: 1rem;
+}
+
+.mb-1 {
+  margin-bottom: 1rem;
+}
+
+.mt-2 {
+  margin-top: 2rem;
+}
+
+.mb-2 {
+  margin-bottom: 2rem;
+}
+
+.pt-1 {
+  padding-top: 1rem;
+}
+
+.pb-1 {
+  padding-bottom: 1rem;
+}
+
+.pt-2 {
+  padding-top: 2rem;
+}
+
+.pb-2 {
+  padding-bottom: 2rem;
+}
