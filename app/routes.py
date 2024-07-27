@@ -33,12 +33,14 @@ from werkzeug.utils import secure_filename
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in {
         "pdf",
         "docx",
         "csv",
     }
+
 
 def init_routes(app):
     @app.route("/")
@@ -595,7 +597,7 @@ def init_routes(app):
         reviews = (
             app.supabase.table("performance_reviews")
             .select("*")
-            .eq("submitted_by", current_employee_id)
+            .eq("employee_id", current_employee_id)  # Update this line with the correct column
             .execute()
             .data
         )
