@@ -174,8 +174,7 @@ def init_routes(app):
             flash("You need admin privileges to access this page.")
             return redirect(url_for("login"))
         user = (
-            app.supabase.table("users").select(
-                "*").eq("id", user_id).execute().data[0]
+            app.supabase.table("users").select("*").eq("id", user_id).execute().data[0]
         )
         app.supabase.table("users").update({"status": "approved"}).eq(
             "id", user_id
@@ -279,15 +278,13 @@ def init_routes(app):
             .data
         )
 
-        logging.debug(
-            f"Employees reporting to {current_employee_id}: {employees}")
+        logging.debug(f"Employees reporting to {current_employee_id}: {employees}")
 
         return render_template("myteam_employment.html", employees=employees)
 
     @app.route("/admin/add_user", methods=["GET", "POST"])
     def add_user():
         print("Not finished yet!!!!!")
-        return render_template("add_user.html")
 
     @app.route("/admin/edit_user/<int:user_id>", methods=["GET", "POST"])
     def edit_user(user_id):
@@ -351,8 +348,7 @@ def init_routes(app):
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file_content = file.read()
-                file_content_encoded = base64.b64encode(
-                    file_content).decode("utf-8")
+                file_content_encoded = base64.b64encode(file_content).decode("utf-8")
                 file_type = file.filename.rsplit(".", 1)[1].lower()
                 user_id = session["user"]["id"]
 
@@ -389,8 +385,7 @@ def init_routes(app):
             flash("You need to be logged in to perform this action.")
             return redirect(url_for("login"))
 
-        app.supabase.table("electronic_services").delete().eq(
-            "id", id).execute()
+        app.supabase.table("electronic_services").delete().eq("id", id).execute()
 
         flash("File deleted successfully.", "success")
         return redirect(url_for("electronic_services"))
@@ -452,32 +447,27 @@ def init_routes(app):
 
         try:
             cleaned_employee_name = employee_name.strip().lower()
-            logging.debug(
-                f"Searching for employee with cleaned name: {cleaned_employee_name}")
+            logging.debug(f"Searching for employee with cleaned name: {cleaned_employee_name}")
 
             response = app.supabase.table('employees').select('*').execute()
             if response.error:
                 logging.error(f"Supabase error: {response.error}")
                 return jsonify({'error': 'Supabase error', 'message': response.error.message}), 500
 
-            employees = [
-                emp for emp in response.data if cleaned_employee_name in emp['employee_name'].lower()]
+            employees = [emp for emp in response.data if cleaned_employee_name in emp['employee_name'].lower()]
 
             if not employees:
-                logging.warning(
-                    f"No employee found for cleaned name: {cleaned_employee_name}")
+                logging.warning(f"No employee found for cleaned name: {cleaned_employee_name}")
                 return jsonify({'error': 'Employee not found'}), 404
 
             employee = employees[0]
             logging.debug(f"Employee data: {employee}")
 
-            supervisor_response = app.supabase.table('employees').select(
-                'title').eq('employee_id', employee['reports_to']).execute()
+            supervisor_response = app.supabase.table('employees').select('title').eq('employee_id', employee['reports_to']).execute()
             logging.debug(f"Supervisor response: {supervisor_response}")
 
             if supervisor_response.error:
-                logging.error(
-                    f"Supabase error (supervisor): {supervisor_response.error}")
+                logging.error(f"Supabase error (supervisor): {supervisor_response.error}")
                 return jsonify({'error': 'Supabase error (supervisor)', 'message': supervisor_response.error.message}), 500
 
             supervisor_position = supervisor_response.data[0]['title'] if supervisor_response.data else ''
@@ -506,13 +496,10 @@ def init_routes(app):
         # Fetch employees for the dropdown
         try:
             user_id = session['user']['id']
-            current_employee = app.supabase.table('employees').select(
-                'employee_id').eq('auth_user_id', user_id).execute().data[0]
+            current_employee = app.supabase.table('employees').select('employee_id').eq('auth_user_id', user_id).execute().data[0]
             current_employee_id = current_employee['employee_id']
-            employees = app.supabase.table('employees').select(
-                'employee_name, employee_id').eq('reports_to', current_employee_id).execute().data
-            form.employee_id.choices = [
-                (employee['employee_id'], employee['employee_name']) for employee in employees]
+            employees = app.supabase.table('employees').select('employee_name, employee_id').eq('reports_to', current_employee_id).execute().data
+            form.employee_id.choices = [(employee['employee_id'], employee['employee_name']) for employee in employees]
         except Exception as e:
             logging.error(f"Error fetching employees: {e}")
             flash("Error fetching employees.", "danger")
@@ -526,22 +513,19 @@ def init_routes(app):
                 safety_result = form.safety_result.data
 
                 # Correct query now that employee_id is in position table
-                position_response = app.supabase.table('position').select(
-                    'pay_grade').eq('employee_id', employee_id).execute()
+                position_response = app.supabase.table('position').select('pay_grade').eq('employee_id', employee_id).execute()
                 if not position_response.data:
                     flash('Position data not found', 'danger')
                     return redirect(url_for('myteam_performance_evaluations'))
 
                 pay_grade = position_response.data[0]['pay_grade']
-                salary_response = app.supabase.table('salaries').select(
-                    'current_salary').eq('employee_id', employee_id).execute()
+                salary_response = app.supabase.table('salaries').select('current_salary').eq('employee_id', employee_id).execute()
                 if not salary_response.data:
                     flash('Salary data not found', 'danger')
                     return redirect(url_for('myteam_performance_evaluations'))
 
                 salary = Decimal(salary_response.data[0]['current_salary'])
-                pay_band_response = app.supabase.table('pay_bands').select(
-                    '*').eq('band', pay_grade).execute()
+                pay_band_response = app.supabase.table('pay_bands').select('*').eq('band', pay_grade).execute()
                 if not pay_band_response.data:
                     flash('Pay band data not found', 'danger')
                     return redirect(url_for('myteam_performance_evaluations'))
@@ -583,8 +567,7 @@ def init_routes(app):
                     'submitted_at': datetime.datetime.now().isoformat()    # Convert datetime to string
                 }
 
-                app.supabase.table(
-                    'performance_reviews').insert(data).execute()
+                app.supabase.table('performance_reviews').insert(data).execute()
 
                 flash("Evaluation submitted successfully.", "success")
                 return redirect(url_for('myteam_performance_evaluations'))
@@ -614,8 +597,123 @@ def init_routes(app):
         reviews = (
             app.supabase.table("performance_reviews")
             .select("*")
-            .eq("employee_id", current_employee_id)  # Update this line with the correct column
+            .eq("submitted_by", current_employee_id)
             .execute()
             .data
         )
         return render_template("view_performance_reviews.html", reviews=reviews)
+
+    @app.route("/myteam/performance_dashboard")
+    def performance_dashboard():
+        return render_template("myteam_performance_dashboard.html")
+
+    @app.route('/myteam/complete_evaluations', methods=['GET', 'POST'])
+    def complete_evaluations():
+        form = PerformanceEvaluationForm()
+
+        # Fetch employees for the dropdown
+        try:
+            user_id = session['user']['id']
+            current_employee = app.supabase.table('employees').select('employee_id').eq('auth_user_id', user_id).execute().data[0]
+            current_employee_id = current_employee['employee_id']
+            employees = app.supabase.table('employees').select('employee_name, employee_id').eq('reports_to', current_employee_id).execute().data
+            form.employee_id.choices = [(employee['employee_id'], employee['employee_name']) for employee in employees]
+        except Exception as e:
+            logging.error(f"Error fetching employees: {e}")
+            flash("Error fetching employees.", "danger")
+            form.employee_id.choices = []
+
+        if form.validate_on_submit():
+            try:
+                employee_id = form.employee_id.data
+                business_result = form.business_result.data
+                individual_result = form.individual_result.data
+                safety_result = form.safety_result.data
+
+                position_response = app.supabase.table('position').select('pay_grade').eq('employee_id', employee_id).execute()
+                if not position_response.data:
+                    flash('Position data not found', 'danger')
+                    return redirect(url_for('complete_evaluations'))
+
+                pay_grade = position_response.data[0]['pay_grade']
+                salary_response = app.supabase.table('salaries').select('current_salary').eq('employee_id', employee_id).execute()
+                if not salary_response.data:
+                    flash('Salary data not found', 'danger')
+                    return redirect(url_for('complete_evaluations'))
+
+                salary = Decimal(salary_response.data[0]['current_salary'])
+                pay_band_response = app.supabase.table('pay_bands').select('*').eq('band', pay_grade).execute()
+                if not pay_band_response.data:
+                    flash('Pay band data not found', 'danger')
+                    return redirect(url_for('complete_evaluations'))
+
+                pay_band = pay_band_response.data[0]
+
+                target_award = Decimal(pay_band['target_award'])
+                business_weight = Decimal(pay_band['business_weight'])
+                individual_weight = Decimal(pay_band['individual_weight'])
+                safety_weight = Decimal(pay_band['safety_weight'])
+
+                business_result = Decimal(business_result) / Decimal(100)
+                individual_result = Decimal(individual_result) / Decimal(100)
+                safety_result = Decimal(safety_result) / Decimal(100)
+
+                target_bonus = salary * target_award
+                business_contribution = target_bonus * business_weight
+                individual_contribution = target_bonus * individual_weight
+                safety_contribution = target_bonus * safety_weight
+
+                actual_business = business_contribution * business_result
+                actual_individual = individual_contribution * individual_result
+                actual_safety = safety_contribution * safety_result
+
+                bonus_payout = actual_business + actual_individual + actual_safety
+
+                app.supabase.table('performance_reviews').insert({
+                    'employee_id': employee_id,
+                    'business_result': business_result,
+                    'individual_result': individual_result,
+                    'safety_result': safety_result,
+                    'bonus_payout': bonus_payout,
+                    'evaluation_date': datetime.date.today(),
+                    'submitted_at': datetime.datetime.now(),
+                    'submitted_by': user_id
+                }).execute()
+
+                flash("Evaluation submitted successfully.", "success")
+                return redirect(url_for('complete_evaluations'))
+            except Exception as e:
+                logging.error(f"Error processing form: {e}")
+                logging.error(traceback.format_exc())
+                flash("An error occurred while submitting the evaluation.", "danger")
+
+        return render_template('complete_evaluations.html', form=form)
+
+    @app.route("/myteam/view_evaluations", methods=["GET"])
+    def view_evaluations():
+        if "user" not in session:
+            flash("You need to be logged in to view this page.")
+            return redirect(url_for("login"))
+
+        user_id = session["user"]["id"]
+        current_employee = (
+            app.supabase.table("employees")
+            .select("employee_id")
+            .eq("auth_user_id", user_id)
+            .execute()
+            .data[0]
+        )
+        current_employee_id = current_employee["employee_id"]
+
+        reviews = (
+            app.supabase.table("performance_reviews")
+            .select("*")
+            .eq("submitted_by", current_employee_id)
+            .execute()
+            .data
+        )
+        return render_template("view_evaluations.html", reviews=reviews)
+
+    @app.route("/myteam/performance_reports")
+    def performance_reports():
+        return render_template("performance_reports.html")

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Team Performance Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>My Team Performance Dashboard</h1>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('performance_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('complete_evaluations') }}">Complete Evaluations</a></li>
+            <li><a href="{{ url_for('view_evaluations') }}">View Evaluations</a></li>
+            <li><a href="{{ url_for('performance_reports') }}">Performance Reports</a></li>
+        </ul>
+    </nav>
+</body>
+</html>

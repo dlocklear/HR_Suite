@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Complete Performance Evaluations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Complete Performance Evaluations</h1>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('performance_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('complete_evaluations') }}">Complete Evaluations</a></li>
+            <li><a href="{{ url_for('view_evaluations') }}">View Evaluations</a></li>
+            <li><a href="{{ url_for('performance_reports') }}">Performance Reports</a></li>
+        </ul>
+    </nav>
+    <form method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.employee_id.label }}<br>
+            {{ form.employee_id }}
+        </p>
+        <p>
+            {{ form.business_result.label }}<br>
+            {{ form.business_result(size=20) }}
+        </p>
+        <p>
+            {{ form.individual_result.label }}<br>
+            {{ form.individual_result(size=20) }}
+        </p>
+        <p>
+            {{ form.safety_result.label }}<br>
+            {{ form.safety_result(size=20) }}
+        </p>
+        <p><input type="submit" value="Submit Evaluation"></p>
+    </form>
+</body>
+</html>

@@ -2,68 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Performance Evaluation</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/my_performance_evaluation.css') }}">
+    <title>Complete Performance Evaluations</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="banner container-fluid">
-        <div class="logo">
-            <img src="{{ url_for('static', filename='img/LuxiumLogo.png') }}" alt="Company Logo">
-        </div>
-        <div class="top-right-links">
-            <a href="#">About</a>
-            <a href="#">Services</a>
-            <a href="{{ url_for('logout') }}" class="logout-btn" role="button">Logout</a>
-        </div>
-    </div>
-
-    <nav class="navigation">
+    <header>
+        <h1>Complete Performance Evaluations</h1>
+    </header>
+    <nav>
         <ul>
-            <li><a href="#">Home</a></li>
-            <li><a href="#">Resources</a></li>
-            <li><a href="#">Myself</a></li>
-            <li><a href="#">People</a></li>
-            <li><a href="#">My Team</a></li>
-            <li><a href="#">Process</a></li>
-            <li><a href="#">Reports & Analytics</a></li>
-            <li><a href="#">Setup & Security</a></li>
+            <li><a href="{{ url_for('performance_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('complete_evaluations') }}">Complete Evaluations</a></li>
+            <li><a href="{{ url_for('view_evaluations') }}">View Evaluations</a></li>
+            <li><a href="{{ url_for('performance_reports') }}">Performance Reports</a></li>
         </ul>
     </nav>
-
     <main>
-        <div class="container">
-            <div class="title-bar">
-                <h1>Performance Evaluation</h1>
+        <form method="POST" action="/myteam/complete_evaluations">
+            {{ form.hidden_tag() }}
+            <div>
+                <label for="employee_id">Employee:</label>
+                {{ form.employee_id }}
             </div>
-            <div class="form-container">
-                <form method="POST" action="{{ url_for('myteam_performance_evaluations') }}">
-                    {{ form.hidden_tag() }}
-                    <div class="grid">
-                        <div class="form-group">
-                            <label for="employee_id">Employee</label>
-                            {{ form.employee_id(class="form-control") }}
-                        </div>
-                        <div class="form-group">
-                            <label for="business_result">Business Result (%)</label>
-                            {{ form.business_result(class="form-control") }}
-                        </div>
-                        <div class="form-group">
-                            <label for="individual_result">Individual Result (%)</label>
-                            {{ form.individual_result(class="form-control") }}
-                        </div>
-                        <div class="form-group">
-                            <label for="safety_result">Safety Result (%)</label>
-                            {{ form.safety_result(class="form-control") }}
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </form>
+            <div>
+                <label for="business_result">Business Result (%):</label>
+                {{ form.business_result }}
             </div>
-        </div>
+            <div>
+                <label for="individual_result">Individual Result (%):</label>
+                {{ form.individual_result }}
+            </div>
+            <div>
+                <label for="safety_result">Safety Result (%):</label>
+                {{ form.safety_result }}
+            </div>
+            <button type="submit">Submit Evaluation</button>
+        </form>
     </main>
-
-    <script src="{{ url_for('static', filename='js/form-submission.js') }}"></script>
+    <footer>
+        <p>&copy; 2024 Your Company</p>
+    </footer>
 </body>
 </html>

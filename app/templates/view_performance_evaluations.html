@@ -2,44 +2,49 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Performance Reviews</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>View Performance Evaluations</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
-        <div class="banner">
-            <div class="logo">
-                <img src="{{ url_for('static', filename='img/LuxiumLogo.png') }}" alt="Luxium Solutions Logo">
-            </div>
-        </div>
-        <nav class="navigation">
-            <ul>
-                <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                <li><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
-            </ul>
-        </nav>
+        <h1>View Performance Evaluations</h1>
     </header>
-    <main class="container">
-        <div class="title-bar">
-            <h1>View Performance Reviews</h1>
-        </div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Employee ID</th>
-                        <th>Business Result</th>
-                        <th>Individual Result</th>
-                        <th>Safety Result</th>
-                        <th>Bonus Payout</th>
-                        <th>Evaluation Date</th>
-                        <th>Submitted At</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for review in reviews %}
-                    <tr>
-                        <td>{{ review.employee_id }}</td>
-                        <td>{
-
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('performance_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('complete_evaluations') }}">Complete Evaluations</a></li>
+            <li><a href="{{ url_for('view_evaluations') }}">View Evaluations</a></li>
+            <li><a href="{{ url_for('performance_reports') }}">Performance Reports</a></li>
+        </ul>
+    </nav>
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Business Result</th>
+                    <th>Individual Result</th>
+                    <th>Safety Result</th>
+                    <th>Bonus Payout</th>
+                    <th>Evaluation Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in reviews %}
+                <tr>
+                    <td>{{ review.employee_id }}</td>
+                    <td>{{ review.business_result }}</td>
+                    <td>{{ review.individual_result }}</td>
+                    <td>{{ review.safety_result }}</td>
+                    <td>{{ review.bonus_payout }}</td>
+                    <td>{{ review.evaluation_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+    <footer>
+        <p>&copy; 2024 Your Company</p>
+    </footer>
+</body>
+</html>
