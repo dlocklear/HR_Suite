@@ -419,8 +419,8 @@ def init_routes(app):
     def performance_dashboard():
         return render_template("myteam_performance_dashboard.html")
 
-    @app.route("/myteam/view_evaluations", methods=["GET"])
-    def view_evaluations(): 
+    @app.route("/myteam/view_evaluations", methods=["GET", "POST"])
+    def view_evaluations():
         if "user" not in session:
             flash("You need to be logged in to view this page.")
             return redirect(url_for("login"))
@@ -429,30 +429,47 @@ def init_routes(app):
         logging.debug(f"User ID: {user_id}")
 
         try:
-            # Fetching employee's ID based on auth_user_id
-            current_employee_response = app.supabase.table("employees").select("employee_id").eq("auth_user_id", user_id).execute()
-            logging.debug(f"Current employee response: {current_employee_response}")
+            # Fetching the current manager's employee_id
+            manager_response = app.supabase.table("employees").select("employee_id").eq("auth_user_id", user_id).execute()
+            logging.debug(f"Manager response: {manager_response}")
 
-            if current_employee_response.data:
-                employee_id = current_employee_response.data[0]["employee_id"]
-                logging.debug(f"Employee ID: {employee_id}")
-
-                # Fetching performance reviews submitted by the employee
-                reviews_response = app.supabase.table("performance_reviews").select("*").eq("employee_id", employee_id).execute()
-                logging.debug(f"Reviews Response: {reviews_response}")
-
-                if reviews_response.data:
-                    reviews = reviews_response.data
-                    return render_template("myteam_view_evaluations.html", reviews=reviews)
-                else:
-                    logging.warning("No reviews found for the current employee.")
-                    flash("No reviews found for the current employee.", "warning")
-                    return redirect(url_for("dashboard"))
-            else:
-                logging.warning("Employee data not found.")
-                flash("Employee data not found.", "danger")
+            if not manager_response.data:
+                logging.warning(f"Manager data not found for user ID: {user_id}")
+                flash("Manager data not found.", "danger")
                 return redirect(url_for("dashboard"))
-            
+
+            manager_employee_id = manager_response.data[0]["employee_id"]
+            logging.debug(f"Manager Employee ID: {manager_employee_id}")
+
+            # Fetching employees reporting to the current manager
+            employees_response = app.supabase.table("employees").select("employee_name, employee_id").eq("reports_to", manager_employee_id).execute()
+            logging.debug(f"Employees response: {employees_response}")
+
+            if not employees_response.data:
+                logging.warning(f"No employees found reporting to manager with ID: {manager_employee_id}")
+                flash("No employees found reporting to you.", "warning")
+                return redirect(url_for("dashboard"))
+
+            employees = employees_response.data
+
+            if request.method == "POST":
+                selected_employee_id = request.form.get("employee_id")
+                logging.debug(f"Selected Employee ID: {selected_employee_id}")
+
+                if selected_employee_id:
+                    reviews_response = app.supabase.table("performance_reviews").select("*").eq("employee_id", selected_employee_id).execute()
+                    logging.debug(f"Reviews Response: {reviews_response}")
+
+                    if reviews_response.data:
+                        reviews = reviews_response.data
+                        return render_template("myteam_view_evaluations.html", employees=employees, reviews=reviews)
+                    else:
+                        logging.warning(f"No reviews found for employee with ID: {selected_employee_id}")
+                        flash("No reviews found for the selected employee.", "warning")
+                        return redirect(url_for("view_evaluations"))
+
+            return render_template("myteam_view_evaluations.html", employees=employees)
+
         except Exception as e:
             logging.error(f"Error fetching evaluations: {e}")
             logging.error(traceback.format_exc())

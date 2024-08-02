@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Complete Performance Evaluations</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>View Performance Evaluations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 </head>
 <body>
     <header>
-        <h1>Complete Performance Evaluations</h1>
+        <h1>View Performance Evaluations</h1>
     </header>
     <nav>
         <ul>
@@ -18,26 +18,35 @@
         </ul>
     </nav>
     <main>
-        <form method="POST" action="/myteam/complete_evaluations">
-            {{ form.hidden_tag() }}
-            <div>
-                <label for="employee_id">Employee:</label>
-                {{ form.employee_id }}
-            </div>
-            <div>
-                <label for="business_result">Business Result (%):</label>
-                {{ form.business_result }}
-            </div>
-            <div>
-                <label for="individual_result">Individual Result (%):</label>
-                {{ form.individual_result }}
-            </div>
-            <div>
-                <label for="safety_result">Safety Result (%):</label>
-                {{ form.safety_result }}
-            </div>
-            <button type="submit">Submit Evaluation</button>
-        </form>
+        <h2>Employee Evaluations</h2>
+        {% if reviews %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee Name</th>
+                        <th>Business Result</th>
+                        <th>Individual Result</th>
+                        <th>Safety Result</th>
+                        <th>Bonus Payout</th>
+                        <th>Evaluation Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in reviews %}
+                        <tr>
+                            <td>{{ review.employee_name }}</td>
+                            <td>{{ review.business_result }}%</td>
+                            <td>{{ review.individual_result }}%</td>
+                            <td>{{ review.safety_result }}%</td>
+                            <td>{{ review.bonus_payout }}</td>
+                            <td>{{ review.evaluation_date }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No evaluations found.</p>
+        {% endif %}
     </main>
     <footer>
         <p>&copy; 2024 Your Company</p>
