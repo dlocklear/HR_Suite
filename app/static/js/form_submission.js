@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const form = document.querySelector("form");
+    const form = document.querySelector("#evaluationForm");
     const flashMessage = document.createElement("div");
     flashMessage.classList.add("flash-message");
     document.body.prepend(flashMessage);
