@@ -13,6 +13,29 @@ load_dotenv()
 
 bcrypt = Bcrypt()
 
+
+def send_email(recipient_email, subject, body):
+    sender_email = os.getenv("SMTP_SENDER_EMAIL")
+    sender_password = os.getenv("SMTP_PASS")
+    smtp_server = os.getenv("SMTP_SERVER")
+    smtp_port = int(os.getenv("SMTP_PORT"))
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = recipient_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'html'))
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+        logging.info("Email sent successfully.")
+    except Exception as e:
+        logging.error(f"Failed to send email: {e}")
+
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -24,39 +47,14 @@ def create_app(config_class=Config):
     key = os.getenv("SUPABASE_ANON_KEY")
 
     if not url or not key:
-        logging.error("Supabase URL or Key not found. Please check the .env file.")
+        logging.error(
+            "Supabase URL or Key not found. Please check the .env file.")
     else:
         logging.info(f"Supabase URL: {url}")
-        logging.info(f"Supabase Key: {key[:10]}...")  # Log only the first 10 characters of the key for security
+        # Log only the first 10 characters of the key for security
+        logging.info(f"Supabase Key: {key[:10]}...")
 
     app.supabase = create_client(url, key)
-
-    # Function to send email
-    def send_email(to_email, subject, body):
-        smtp_server = os.getenv("SMTP_SERVER")
-        smtp_port = int(os.getenv("SMTP_PORT"))
-        smtp_user = os.getenv("SMTP_USER")
-        smtp_password = os.getenv("SMTP_PASSWORD")
-        from_email = os.getenv("SMTP_FROM")
-
-        # Create the email
-        msg = MIMEMultipart()
-        msg["From"] = from_email
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        # Send email
-        try:
-            with smtplib.SMTP(smtp_server, smtp_port) as server:
-                server.starttls()  # Secure connection
-                server.login(smtp_user, smtp_password)
-                server.sendmail(from_email, to_email, msg.as_string())
-                print("Email sent successfully")
-        except Exception as e:
-            print(f"Error sending email: {e}")
-
-    app.send_email = send_email
 
     from app.routes import init_routes
     init_routes(app)
