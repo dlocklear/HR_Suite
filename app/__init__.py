@@ -1,13 +1,14 @@
 import os
-from supabase import create_client
-from flask import Flask
-from flask_bcrypt import Bcrypt
-from config import Config
-from dotenv import load_dotenv
 import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
+from supabase import create_client
+from flask import Flask
+from flask_bcrypt import Bcrypt
+from config import Config
+from app.routes import init_routes
 
 load_dotenv()
 
@@ -56,7 +57,6 @@ def create_app(config_class=Config):
 
     app.supabase = create_client(url, key)
 
-    from app.routes import init_routes
     init_routes(app)
 
     return app
