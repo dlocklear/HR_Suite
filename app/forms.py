@@ -14,13 +14,15 @@ from wtforms.validators import DataRequired, Email, EqualTo, Length, NumberRange
 
 
 class RegistrationForm(FlaskForm):
-    name = StringField("Name", validators=[DataRequired(), Length(min=2, max=50)])
+    name = StringField("Name", validators=[
+                       DataRequired(), Length(min=2, max=50)])
     user_id = StringField("User ID", validators=[DataRequired()])
     username = StringField(
         "Username", validators=[DataRequired(), Length(min=2, max=20)]
     )
     email = StringField("Email", validators=[DataRequired(), Email()])
-    password = PasswordField("Password", validators=[DataRequired(), Length(min=6)])
+    password = PasswordField("Password", validators=[
+                             DataRequired(), Length(min=6)])
     confirm_password = PasswordField(
         "Confirm Password", validators=[DataRequired(), EqualTo("password")]
     )
@@ -33,9 +35,12 @@ class RegistrationForm(FlaskForm):
     title = StringField("Title", validators=[DataRequired()])
     reports_to = StringField("Reports To", validators=[DataRequired()])
     position_id = StringField("Position ID", validators=[DataRequired()])
-    hire_date = DateField("Hire Date", format="%Y-%m-%d", validators=[DataRequired()])
-    created_at = DateField("Created At", format="%Y-%m-%d", validators=[DataRequired()])
-    updated_at = DateField("Updated At", format="%Y-%m-%d", validators=[DataRequired()])
+    hire_date = DateField("Hire Date", format="%Y-%m-%d",
+                          validators=[DataRequired()])
+    created_at = DateField("Created At", format="%Y-%m-%d",
+                           validators=[DataRequired()])
+    updated_at = DateField("Updated At", format="%Y-%m-%d",
+                           validators=[DataRequired()])
     seniority_date = DateField(
         "Seniority Date", format="%Y-%m-%d", validators=[DataRequired()]
     )
@@ -45,6 +50,8 @@ class RegistrationForm(FlaskForm):
         choices=[("active", "Active"), ("inactive", "Inactive")],
         validators=[DataRequired()],
     )
+    company_code = SelectField('Company code', choices=[(
+        'F6I', 'F6I'), ('WYH', 'WYH')], validators=[DataRequired()])
     submit = SubmitField("Register")
 
 
@@ -101,7 +108,8 @@ class PersonalActionForm(FlaskForm):
     department = StringField("Department", validators=[DataRequired()])
     company_code = StringField("Company Code", validators=[DataRequired()])
     pay_grade = StringField("Pay Grade", validators=[DataRequired()])
-    supervisor_name = StringField("Supervisor Name", validators=[DataRequired()])
+    supervisor_name = StringField(
+        "Supervisor Name", validators=[DataRequired()])
     supervisor_position = StringField(
         "Supervisor Position", validators=[DataRequired()]
     )
@@ -109,8 +117,10 @@ class PersonalActionForm(FlaskForm):
     current_position_title = StringField(
         "Current Position Title", validators=[DataRequired()]
     )
-    new_position_title = StringField("New Position Title", validators=[DataRequired()])
-    current_department = StringField("Current Department", validators=[DataRequired()])
+    new_position_title = StringField(
+        "New Position Title", validators=[DataRequired()])
+    current_department = StringField(
+        "Current Department", validators=[DataRequired()])
     new_department = StringField("New Department", validators=[DataRequired()])
     current_supervisor_name = StringField(
         "Current Supervisor Name", validators=[DataRequired()]
@@ -124,18 +134,22 @@ class PersonalActionForm(FlaskForm):
     new_supervisor_position = StringField(
         "New Supervisor Position", validators=[DataRequired()]
     )
-    current_pay_group = StringField("Current Pay Group", validators=[DataRequired()])
+    current_pay_group = StringField(
+        "Current Pay Group", validators=[DataRequired()])
     new_pay_group = StringField("New Pay Group", validators=[DataRequired()])
-    current_pay_grade = StringField("Current Pay Grade", validators=[DataRequired()])
+    current_pay_grade = StringField(
+        "Current Pay Grade", validators=[DataRequired()])
     new_pay_grade = StringField("New Pay Grade", validators=[DataRequired()])
     current_yearly_salary = StringField(
         "Current Yearly Salary", validators=[DataRequired()]
     )
-    new_yearly_salary = StringField("New Yearly Salary", validators=[DataRequired()])
+    new_yearly_salary = StringField(
+        "New Yearly Salary", validators=[DataRequired()])
     current_hourly_rate = StringField(
         "Current Hourly Rate", validators=[DataRequired()]
     )
-    new_hourly_rate = StringField("New Hourly Rate", validators=[DataRequired()])
+    new_hourly_rate = StringField(
+        "New Hourly Rate", validators=[DataRequired()])
 
     weeks_full_pay = StringField("Weeks Full Pay", validators=[DataRequired()])
     weeks_60_pay = StringField("Weeks 60% Pay", validators=[DataRequired()])
@@ -159,11 +173,14 @@ class LeaveRequestForm(FlaskForm):
     employee_id = StringField("Employee ID", validators=[DataRequired()])
     leave_type = SelectField(
         "Leave Type",
-        choices=[("sick", "Sick"), ("vacation", "Vacation"), ("personal", "Personal")],
+        choices=[("sick", "Sick"), ("vacation", "Vacation"),
+                 ("personal", "Personal")],
         validators=[DataRequired()],
     )
-    start_date = DateField("Start Date", format="%Y-%m-%d", validators=[DataRequired()])
-    end_date = DateField("End Date", format="%Y-%m-%d", validators=[DataRequired()])
+    start_date = DateField("Start Date", format="%Y-%m-%d",
+                           validators=[DataRequired()])
+    end_date = DateField("End Date", format="%Y-%m-%d",
+                         validators=[DataRequired()])
     reason = TextAreaField("Reason", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
@@ -171,8 +188,10 @@ class LeaveRequestForm(FlaskForm):
 class PersonalLeaveForm(FlaskForm):
     employee_name = StringField("Employee Name", validators=[DataRequired()])
     employee_id = StringField("Employee ID", validators=[DataRequired()])
-    start_date = DateField("Start Date", format="%Y-%m-%d", validators=[DataRequired()])
-    end_date = DateField("End Date", format="%Y-%m-%d", validators=[DataRequired()])
+    start_date = DateField("Start Date", format="%Y-%m-%d",
+                           validators=[DataRequired()])
+    end_date = DateField("End Date", format="%Y-%m-%d",
+                         validators=[DataRequired()])
     reason = TextAreaField("Reason", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
@@ -189,12 +208,24 @@ class AnonymousComplaintForm(FlaskForm):
     )
     details = TextAreaField("Details", validators=[DataRequired()])
     submit = SubmitField("Submit")
-    
+
 # Form class
+
+
 class PerformanceEvaluationForm(FlaskForm):
     employee_id = SelectField('Employee', validators=[InputRequired()])
-    business_result = DecimalField('Business Result (%)', validators=[InputRequired(), NumberRange(min=0, max=100)])
-    individual_result = DecimalField('Individual Result (%)', validators=[InputRequired(), NumberRange(min=0, max=100)])
-    safety_result = DecimalField('Safety Result (%)', validators=[InputRequired(), NumberRange(min=0, max=100)])
+    business_result = DecimalField('Business Result (%)', validators=[
+                                   InputRequired(), NumberRange(min=0, max=100)])
+    individual_result = DecimalField('Individual Result (%)', validators=[
+                                     InputRequired(), NumberRange(min=0, max=100)])
+    safety_result = DecimalField('Safety Result (%)', validators=[
+                                 InputRequired(), NumberRange(min=0, max=100)])
     submit = SubmitField('Submit')
 
+
+class AcceptUserForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[
+                                     DataRequired(), EqualTo('password')])
+    submit = SubmitField('Accept Invitation')

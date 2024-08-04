@@ -21,13 +21,13 @@ body {
   max-width: 600px;
   margin-top: 22rem; /* Adjusted for visibility */
   padding: 2rem;
-  background: #0c32c6; /* Slightly lighter dark background */
+  background: #007bff; /* Slightly lighter dark background */
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .title-bar {
-  background-color: #0c32c6;
+  background-color: #007bff;
   padding: 1rem;
   border-radius: 8px 8px 0 0;
   text-align: center;

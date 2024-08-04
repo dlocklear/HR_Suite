@@ -4,8 +4,8 @@ import datetime
 import traceback
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from supabase import create_client
-from app.forms import PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm
-from app import bcrypt
+from app.forms import PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm, AcceptUserForm
+from app import send_email, bcrypt
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -31,7 +31,7 @@ def init_routes(app):
             if response.user:
                 emailata = app.supabase.table("users").select(
                     "role").eq("auth_user_id", response.user.id).execute()
-               session["user"] = {
+                session["user"] = {
                     "id": response.user.id,
                     "email": response.user.email,
                     "role": user_data.data[0]["role"],
@@ -157,10 +157,6 @@ def init_routes(app):
             f"Employees reporting to {current_employee_id}: {employees}")
 
         return render_template("myteam_employment.html", employees=employees)
-
-    @app.route("/admin/add_user", methods=["GET", "POST"])
-    def add_user():
-        print("Not finished yet!!!!!")
 
     @app.route("/admin/edit_user/<int:user_id>", methods=["GET", "POST"])
     def edit_user(user_id):
@@ -536,7 +532,8 @@ def init_routes(app):
 
     @app.route("/add_user", methods=['GET', 'POST'])
     def add_user():
-        if request.method == 'POST':
+        form = RegistrationForm()
+        if form.validate_on_submit():
             user_info = {
                 "name": request.form['name'],
                 "user_id": request.form['user_id'],
@@ -556,9 +553,54 @@ def init_routes(app):
                 "status": request.form['status']
             }
             email = user_info['email']
-            acceptance_link = url_for('accept_user', email=email, _external=True)
+            acceptance_link = url_for(
+                'accept_user', email=email, _external=True)
             email_body = f"""
             <p> Click the link to accept the invitation:
             <a href="{acceptance_link}">Accept Invitation</a></p>
             """
             send_email(email, "User Invitation", email_body)
+            return "Invitation sent!"
+        return render_template('add_user.html', form=form)
+
+    @app.route('/accept_user', methods=['GET'])
+    def accept_user():
+        form = AcceptUserForm()
+        email = request.args.get('email')
+        if form.validate_on_submit():
+            email = form.email.data
+            password = bcrypt.generate_password_hash(
+                form.password.data).decode('utf-8')
+            auth_response = app.supabase.auth.sign_up(credentials={
+                "email": email, "password": password
+            })
+            if auth_response:
+                app.supabase.table('users').insert({
+                    'user_id': form.user_id.data,
+                    'employee_id': form.employee_id.data,
+                    'username': form.username.data,
+                    'password': form.password.data,
+                    'email': form.email.data,
+                    'role': form.role.data,
+                    'created_at': form.created_at.data,
+                    'updated_at': form.updated_at.data,
+                    'status': form.status.data,
+                    'Name': form.name.data
+                }).execute()
+                app.supabase.table('employees').insert({
+                    'employee_id': form.employee_id.data,
+                    'title': form.title.data,
+                    'email': form.email.data,
+                    'reports_to': form.reports_to.data,
+                    'position_id': form.position_id.data,
+                    'hire_date': form.hire_date.data,
+                    'Seniority_date': form.seniority_date.data,
+                    'Department': form.department.data,
+                    'employee_name': form.employee_name.data,
+                    'Company_Code': form.company_code.data
+                }).execute()
+                flash("User accepted and added to the database!")
+                return redirect(url_for('dashboard'))
+            else:
+                flash("Failed to add user to the authentication")
+        return render_template('dashboard', form=form, email=email)

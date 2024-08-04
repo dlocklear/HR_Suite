@@ -8,7 +8,6 @@ from supabase import create_client
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from config import Config
-from app.routes import init_routes
 
 load_dotenv()
 
@@ -57,6 +56,7 @@ def create_app(config_class=Config):
 
     app.supabase = create_client(url, key)
 
+    from app.routes import init_routes
     init_routes(app)
 
     return app
