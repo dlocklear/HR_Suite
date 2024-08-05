@@ -28,7 +28,7 @@ class RegistrationForm(FlaskForm):
     )
     role = SelectField(
         "Role",
-        choices=[("user", "User"), ("admin", "Admin")],
+        choices=[("user", "User"), ("manager", "Manager"), ("admin", "Admin")],
         validators=[DataRequired()],
     )
     employee_id = StringField("Employee ID", validators=[DataRequired()])
