@@ -78,6 +78,30 @@ def init_routes(app):
         flash("User has been approved.", "success")
         return redirect(url_for("admin_dashboard"))
 
+    @app.route("/register", methods=["GET", "POST"])
+    def register():
+        form = RegistrationForm()
+        if form.validate_on_submit():
+            password_hash = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            user_data = {
+                "email": form.email.data,
+                "password": password_hash,
+                "role": form.role.data,
+            }
+            response = app.supabase.auth.sign_up(user_data)
+            if response.user:
+                app.supabase.table("users").insert({
+                    "auth_user_id": response.user.id,
+                    "email": form.email.data,
+                    "role": form.role.data,
+                    "status": "pending"
+                }).execute()
+                flash("Registration successful. Please wait for admin approval.", "success")
+                return redirect(url_for("login"))
+            else:
+                flash("An error occurred during registration.", "danger")
+        return render_template("register.html", form=form)
+
     @app.route("/admin/change_password", methods=["GET", "POST"])
     def admin_change_password():
         if "user" not in session or session["user"]["role"] != "SuperUser":
