@@ -3,40 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <title>View Performance Evaluations</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 </head>
 <body>
-    <h1>View Performance Evaluations</h1>
-    <ul>
-        <li><a href="{{ url_for('performance_dashboard') }}">Dashboard</a></li>
-        <li><a href="{{ url_for('complete_evaluations') }}">Complete Evaluations</a></li>
-        <li><a href="{{ url_for('view_evaluations') }}">View Evaluations</a></li>
-        <li><a href="{{ url_for('performance_reports') }}">Performance Reports</a></li>
-    </ul>
-    <h2>Evaluations</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Employee</th>
-                <th>Business Result</th>
-                <th>Individual Result</th>
-                <th>Safety Result</th>
-                <th>Bonus Payout</th>
-                <th>Evaluation Date</th>
-            </tr>
-        </thead>
-        <tbody>
+    <header>
+        <h1>View Performance Evaluations</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('performance_dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('complete_evaluations') }}">Complete Evaluations</a></li>
+            <li><a href="{{ url_for('view_evaluations') }}">View Evaluations</a></li>
+            <li><a href="{{ url_for('performance_reports') }}">Performance Reports</a></li>
+        </ul>
+    </nav>
+    <main>
+        <form method="POST">
+            <div>
+                <label for="employee_id">Select Employee:</label>
+                <select name="employee_id" id="employee_id">
+                    {% for employee in employees %}
+                    <option value="{{ employee.employee_id }}">{{ employee.employee_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit">View Evaluations</button>
+        </form>
+        {% if reviews %}
+        <h2>Evaluations:</h2>
+        <ul>
             {% for review in reviews %}
-            <tr>
-                <td>{{ review.employee_id }}</td>
-                <td>{{ review.business_result }}%</td>
-                <td>{{ review.individual_result }}%</td>
-                <td>{{ review.safety_result }}%</td>
-                <td>{{ review.bonus_payout }}</td>
-                <td>{{ review.evaluation_date }}</td>
-            </tr>
+            <li>{{ review }}</li>
             {% endfor %}
-        </tbody>
-    </table>
+        </ul>
+        {% endif %}
+    </main>
+    <footer>
+        <p>&copy; 2024 Your Company</p>
+    </footer>
 </body>
 </html>
