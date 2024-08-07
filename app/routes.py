@@ -2,8 +2,9 @@ from decimal import Decimal
 import logging
 import datetime
 import traceback
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
-from supabase import create_client
+import base64
+from werkzeug.utils import secure_filename
+from flask import render_template, request, jsonify, session, redirect, url_for, flash, json
 from app.forms import PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm, AcceptUserForm
 from app import send_email, bcrypt
 
@@ -29,7 +30,7 @@ def init_routes(app):
             response = app.supabase.auth.sign_in_with_password(
                 {"email": email, "password": password})
             if response.user:
-                emailata = app.supabase.table("users").select(
+                user_data = app.supabase.table("users").select(
                     "role").eq("auth_user_id", response.user.id).execute()
                 session["user"] = {
                     "id": response.user.id,
@@ -316,7 +317,7 @@ def init_routes(app):
         try:
             cleaned_employee_name = employee_name.strip().lower()
             logging.debug(
-                f"Searching for employee with cleaned name: {cleaned_employee_name}")
+                "Searching for employee with cleaned name: %s", {cleaned_employee_name})
 
             response = app.supabase.table('employees').select('*').execute()
             if response.error:
@@ -358,7 +359,7 @@ def init_routes(app):
             return jsonify(result)
 
         except Exception as e:
-            logging.error(f"Error fetching employee details: {e}")
+            logging.error("Error fetching employee details: %s", e)
             logging.error(traceback.format_exc())
             return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
 
@@ -377,9 +378,9 @@ def init_routes(app):
             form.employee_id.choices = [
                 (employee['employee_id'], employee['employee_name']) for employee in employees]
             logging.debug(
-                f"Employees fetched for dropdown: {form.employee_id.choices}")
+                "Employees fetched for dropdown: %s", form.employee_id.choices)
         except Exception as e:
-            logging.error(f"Error fetching employees: {e}")
+            logging.error("Error fetching employees: %s", e)
             flash("Error fetching employees.", "danger")
             form.employee_id.choices = []
 
@@ -449,7 +450,7 @@ def init_routes(app):
                     'submitted_at': datetime.datetime.now().isoformat(),    # Convert datetime to string
                     'submitted_by': user_id
                 }
-                logging.debug(f"Data prepared for insertion: {data}")
+                logging.debug("Data prepared for insertion: {data}")
 
                 insert_response = app.supabase.table(
                     'performance_reviews').insert(data).execute()
@@ -472,11 +473,11 @@ def init_routes(app):
 
         return render_template('complete_evaluations.html', form=form)
 
-    @app.route("/myteam/performance_dashboard")
+    @ app.route("/myteam/performance_dashboard")
     def performance_dashboard():
         return render_template("myteam_performance_dashboard.html")
 
-    @app.route("/myteam/view_evaluations", methods=["GET", "POST"])
+    @ app.route("/myteam/view_evaluations", methods=["GET", "POST"])
     def view_evaluations():
         if "user" not in session:
             flash("You need to be logged in to view this page.")
@@ -540,7 +541,7 @@ def init_routes(app):
             flash("An error occurred while fetching evaluations.", "danger")
             return redirect(url_for("dashboard"))
 
-    @app.route("/people/view_performance_reviews", methods=["GET"])
+    @ app.route("/people/view_performance_reviews", methods=["GET"])
     def people_view_performance_reviews():
         if "user" not in session:
             flash("You need to be logged in to view this page.")
@@ -550,11 +551,11 @@ def init_routes(app):
             "performance_reviews").select("*").execute().data
         return render_template("people_view_performance_reviews.html", reviews=reviews)
 
-    @app.route("/myteam/performance_reports")
+    @ app.route("/myteam/performance_reports")
     def performance_reports():
         return render_template("performance_reports.html")
 
-    @app.route("/add_user", methods=['GET', 'POST'])
+    @ app.route("/add_user", methods=['GET', 'POST'])
     def add_user():
         form = RegistrationForm()
         if form.validate_on_submit():
@@ -587,7 +588,7 @@ def init_routes(app):
             return "Invitation sent!"
         return render_template('add_user.html', form=form)
 
-    @app.route('/accept_user', methods=['GET'])
+    @ app.route('/accept_user', methods=['GET'])
     def accept_user():
         form = AcceptUserForm()
         email = request.args.get('email')
