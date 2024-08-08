@@ -2,9 +2,9 @@ html,
 body {
   height: 100%;
   margin: 0;
-  background-color: #f4f4f9; /* Light background for the entire page */
+  background-color: #f4f4f9;
   color: #333;
-  font-family: "Arial", sans-serif; /* Ensure consistent font family */
+  font-family: "Arial", sans-serif;
 }
 
 body {
@@ -12,76 +12,62 @@ body {
   flex-direction: column;
 }
 
-header {
-  background-color: #ffffff;
-  color: #fff;
-  padding: 1rem 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 4px solid #007bff;
-}
-
-header .logo img {
-  max-height: 50px;
-}
-
-nav ul {
-  list-style: none;
-  display: flex;
-  margin: 0;
-  padding: 0;
-}
-
-nav ul li {
-  margin: 0 1rem;
-}
-
-nav ul li a {
-  color: #007bff;
-  text-decoration: none;
-  font-size: 1rem;
-}
-
-nav ul li a:hover {
-  text-decoration: underline;
-}
-
 main {
   flex: 1;
   padding: 2rem;
+  background-color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  margin-top: 3rem; /* Add top margin to create space below the navigation bar */
+  margin-bottom: 0;
+  width: 90%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 4rem);
 }
 
 .title-bar {
   text-align: center;
-  margin-bottom: 1rem; /* Added margin bottom for spacing */
+  margin-bottom: 1rem; /* Reduced margin to bring the table closer */
 }
 
 .title-bar h1 {
   margin: 0;
-  font-size: 2rem; /* Font size for title */
-  font-weight: bold; /* Make the text bold */
-  color: #007bff; /* Ensure the text color matches the rest */
-}
-
-h1,
-h2,
-h3 {
+  font-size: 2.5rem;
+  font-weight: bold;
   color: #007bff;
-  font-family: "Arial", sans-serif; /* Ensure consistent font family */
-  font-weight: normal; /* Adjust font weight if necessary */
 }
 
-h1 {
-  font-size: 2rem; /* Adjust font size if necessary */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0; /* Remove top margin to move it closer to the title */
+  font-size: 1rem;
 }
 
-h2 {
-  font-size: 1.5rem; /* Adjust font size if necessary */
+table th,
+table td {
+  padding: 1rem;
+  text-align: left;
+  border: 1px solid #ddd;
+  height: auto;
+  width: auto;
 }
 
-h3 {
-  font-size: 1.25rem; /* Adjust font size if necessary */
+table th {
+  background-color: #007bff;
+  color: #fff;
+}
+
+table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+table tr:hover {
+  background-color: #f1f1f1;
 }
 
 button,
@@ -89,7 +75,7 @@ button,
   background-color: #007bff;
   color: #fff;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
   text-decoration: none;
@@ -99,33 +85,4 @@ button,
 button:hover,
 .button:hover {
   background-color: #0056b3;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-}
-
-table th,
-table td {
-  padding: 0.5rem;
-  text-align: left;
-  border: 1px solid #ccc;
-  color: black;
-  background-color: rgb(232, 232, 232);
-}
-
-table th {
-  background-color: #007bff;
-  color: #fff;
-}
-
-table tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-.container-fluid {
-  width: 100%;
-  padding: 0 2rem;
 }

@@ -73,7 +73,7 @@ body {
 }
 
 .dashboard-hr-banner .right-link {
-  margin-left: 1650px;
+  margin-left: 1650px; /* Adjust this value to move "Contact HR" left or right */
   position: relative;
 }
 
