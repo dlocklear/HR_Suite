@@ -43,13 +43,15 @@ body {
 
 /* HR Banner */
 .dashboard-hr-banner {
-  background-color: #f8f9fa; /* Light background for HR banner */
-  border: none;
-  border-radius: 8px; /* Rounded corners for modern look */
-  margin: 20px 0; /* Add margin for spacing */
-  position: relative;
+  background-color: #213f86; /* Same color as the title bar */
+  color: white;
+  padding: 1rem;
+  position: absolute;
   bottom: 0;
   width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .dashboard-hr-banner .container-fluid {
@@ -60,7 +62,7 @@ body {
 
 .dashboard-hr-banner .left-link,
 .dashboard-hr-banner .right-link {
-  color: #007bff;
+  color: #ffffff;
   text-decoration: none;
   font-weight: bold;
 }
@@ -68,6 +70,11 @@ body {
 .dashboard-hr-banner .left-link:hover,
 .dashboard-hr-banner .right-link:hover {
   text-decoration: underline;
+}
+
+.dashboard-hr-banner .right-link {
+  margin-left: 1650px;
+  position: relative;
 }
 
 /* Dashboard Container */

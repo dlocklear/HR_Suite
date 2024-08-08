@@ -94,7 +94,7 @@ a {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   overflow: hidden;
-  min-width: 180px;
+  min-width: 220px; /* Increased minimum width */
 }
 
 .navigation ul li:hover > .dropdown,
@@ -107,9 +107,10 @@ a {
 }
 
 .navigation ul li .dropdown li a {
-  padding: 8px 1% !important;
+  padding: 8px 15px; /* Adjusted padding */
   display: block;
-  white-space: nowrap;
+  white-space: normal;
+  overflow: hidden;
   transition: background-color 0.3s, color 0.3s;
 }
 
@@ -167,6 +168,7 @@ a {
 .notifier {
   position: relative;
   display: inline-block;
+  cursor: pointer;
 }
 
 .bell {
