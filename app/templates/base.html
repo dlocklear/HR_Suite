@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}My Website{% endblock %}</title>
+    <title>{% block title %}Luxium Solutions{% endblock %}</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/base.css') }}"
@@ -12,9 +12,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
-    {% block stylesheets %}
-    <!-- Child templates can add their own stylesheets here -->
-    {% endblock %}
+    {% block stylesheets %}{% endblock %}
   </head>
   <body>
     <div class="wrapper">
@@ -28,9 +26,7 @@
         <div class="top-right-links">
           <a href="#">About</a>
           <a href="#">Services</a>
-
-          <!-- Notification Bell -->
-          <div class="notifier">
+          <div class="notifier new">
             <i class="fa fa-bell-o bell" id="notification-icon"></i>
             <div class="badge">0</div>
             <ul class="dropdown" id="notification-dropdown">
@@ -39,7 +35,6 @@
               <li><a href="#">Notification 3</a></li>
             </ul>
           </div>
-
           <a href="{{ url_for('logout') }}" class="logout-btn" role="button"
             >Logout</a
           >
@@ -48,7 +43,7 @@
 
       <nav class="navigation">
         <ul>
-          <li><a href="#">Home</a></li>
+          <li><a href="{{ url_for('dashboard') }}">Home</a></li>
           <li>
             <a href="#">Resources</a>
             <ul class="dropdown">
@@ -112,9 +107,7 @@
         </ul>
       </nav>
 
-      {% block content %}
-      <!-- Child templates will insert their content here -->
-      {% endblock %}
+      {% block content %}{% endblock %}
     </div>
 
     <div class="hr-banner">

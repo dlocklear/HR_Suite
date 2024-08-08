@@ -24,7 +24,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
+  padding: 0.25rem 2rem !important;
   border-bottom: 4px solid #007bff;
 }
 
@@ -94,7 +94,7 @@ a {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   overflow: hidden;
-  min-width: 220px;
+  min-width: 180px;
 }
 
 .navigation ul li:hover > .dropdown,
@@ -102,10 +102,15 @@ a {
   display: block;
 }
 
+.navigation ul li .dropdown li {
+  list-style: none;
+}
+
 .navigation ul li .dropdown li a {
-  padding: 10px 15px;
+  padding: 8px 1% !important;
   display: block;
   white-space: nowrap;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .navigation ul li .dropdown li a:hover,

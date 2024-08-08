@@ -12,47 +12,12 @@ body {
   flex-direction: column;
 }
 
-header {
-  background-color: #67b1ff;
-  color: #fff;
-  padding: 1rem 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 4px solid #007bff;
-}
-
-header .logo img {
-  max-height: 50px;
-}
-
-nav ul {
-  list-style: none;
-  display: flex;
-  margin: 0;
-  padding: 0;
-}
-
-nav ul li {
-  margin: 0 1rem;
-}
-
-nav ul li a {
-  color: #ffffff;
-  text-decoration: none;
-  font-size: 1rem;
-}
-
-nav ul li a:hover {
-  text-decoration: underline;
-}
-
-main {
+.employment-container {
   flex: 1;
   padding: 2rem;
 }
 
-h1 {
+.employment-container h1 {
   color: #007bff;
   font-family: "Arial", sans-serif; /* Ensure consistent font family */
   font-weight: bold; /* Make the text bold */
@@ -61,13 +26,13 @@ h1 {
   margin-bottom: 2rem;
 }
 
-.grid {
+.employment-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
-.tile {
+.employment-tile {
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -76,13 +41,13 @@ h1 {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.tile h2 {
+.employment-tile h2 {
   margin-top: 0;
   color: #007bff;
   font-size: 1.25rem;
 }
 
-.tile p {
+.employment-tile p {
   margin: 0;
   color: #333;
 }

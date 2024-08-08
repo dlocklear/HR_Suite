@@ -1,63 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Employment Details</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/employment.css') }}"
-    />
-  </head>
-  <body>
-    <header class="container-fluid">
-      <div class="logo">
-        <img src="/static/img/LuxiumLogo.png" alt="Company Logo" />
-      </div>
-      <nav>
-        <ul>
-          <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-          <li><a href="/logout" class="logout-btn">Logout</a></li>
-        </ul>
-      </nav>
-    </header>
-    <main class="container">
-      <h1>Employment Details</h1>
-      <div class="grid">
-        <div class="tile">
-          <h2>Name</h2>
-          <p>{{ employee.employee_name }}</p>
-        </div>
-        <div class="tile">
-          <h2>Email</h2>
-          <p>{{ employee.email }}</p>
-        </div>
-        <div class="tile">
-          <h2>Employee ID</h2>
-          <p>{{ employee.employee_id }}</p>
-        </div>
-        <div class="tile">
-          <h2>Department</h2>
-          <p>{{ employee.Department }}</p>
-        </div>
-        <div class="tile">
-          <h2>Title</h2>
-          <p>{{ employee.title }}</p>
-        </div>
-        <div class="tile">
-          <h2>Hire Date</h2>
-          <p>{{ employee.hire_date }}</p>
-        </div>
-        <div class="tile">
-          <h2>Seniority Date</h2>
-          <p>{{ employee.Seniority_Date }}</p>
-        </div>
-        <!-- Add more tiles as needed for other fields -->
-      </div>
-    </main>
-  </body>
-</html>
+{% extends "base.html" %} {% block title %}Employment Details{% endblock %} {%
+block stylesheets %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/employment.css') }}"
+/>
+{% endblock %} {% block content %}
+<main class="employment-container">
+  <h1>Employment Details</h1>
+  <div class="employment-grid">
+    <div class="employment-tile">
+      <h2>Name</h2>
+      <p>{{ employee.employee_name }}</p>
+    </div>
+    <div class="employment-tile">
+      <h2>Email</h2>
+      <p>{{ employee.email }}</p>
+    </div>
+    <div class="employment-tile">
+      <h2>Employee ID</h2>
+      <p>{{ employee.employee_id }}</p>
+    </div>
+    <div class="employment-tile">
+      <h2>Department</h2>
+      <p>{{ employee.Department }}</p>
+    </div>
+    <div class="employment-tile">
+      <h2>Title</h2>
+      <p>{{ employee.title }}</p>
+    </div>
+    <div class="employment-tile">
+      <h2>Hire Date</h2>
+      <p>{{ employee.hire_date }}</p>
+    </div>
+    <div class="employment-tile">
+      <h2>Seniority Date</h2>
+      <p>{{ employee.Seniority_Date }}</p>
+    </div>
+  </div>
+</main>
+{% endblock %}

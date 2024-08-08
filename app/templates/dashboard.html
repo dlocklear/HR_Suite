@@ -5,8 +5,8 @@ stylesheets %}
   href="{{ url_for('static', filename='css/dashboard.css') }}"
 />
 {% endblock %} {% block content %}
-<section class="carousel">
-  <div class="carousel-images">
+<section class="dashboard-carousel">
+  <div class="dashboard-carousel-images">
     <img
       src="{{ url_for('static', filename='img/Team 1.png') }}"
       alt="Team 1"
@@ -22,9 +22,9 @@ stylesheets %}
   </div>
 </section>
 
-<main class="container">
-  <div class="grid">
-    <div class="tile">
+<main class="dashboard-container">
+  <div class="dashboard-grid">
+    <div class="dashboard-tile">
       <a
         href="https://luxium-solutions-llc.workable.com/referrals"
         target="_blank"
@@ -36,7 +36,7 @@ stylesheets %}
         />
       </a>
     </div>
-    <div class="tile">
+    <div class="dashboard-tile">
       <a href="form-page.html" target="_blank">
         Recognize an Employee
         <img
@@ -45,7 +45,7 @@ stylesheets %}
         />
       </a>
     </div>
-    <div class="tile">
+    <div class="dashboard-tile">
       <a
         href="https://online.adp.com/signin/v1/?APPID=WFNPortal&productId=80e309c3-7085-bae1-e053-3505430b5495&returnURL=https://workforcenow.adp.com/&callingAppId=WFN&TARGET=-SM-https://workforcenow.adp.com/theme/index.html"
         target="_blank"
@@ -57,7 +57,7 @@ stylesheets %}
         />
       </a>
     </div>
-    <div class="tile">
+    <div class="dashboard-tile">
       <a href="#" target="_blank">
         Discounts
         <img
