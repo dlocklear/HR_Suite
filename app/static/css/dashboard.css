@@ -45,8 +45,10 @@ body {
 .dashboard-hr-banner {
   background-color: #213f86; /* Same color as the title bar */
   color: white;
-  padding: 1rem;
-  position: absolute;
+  padding: 0rem;
+  position: static;
+  left: 0;
+  right: 0;
   bottom: 0;
   width: 100%;
   display: flex;
