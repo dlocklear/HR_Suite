@@ -46,7 +46,7 @@ body {
   background-color: #213f86; /* Same color as the title bar */
   color: white;
   padding: 0rem;
-  position: static;
+  position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
@@ -54,6 +54,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  z-index: 1000;
 }
 
 .dashboard-hr-banner .container-fluid {
