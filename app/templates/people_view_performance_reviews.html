@@ -1,44 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>View All Performance Reviews</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <h1>View All Performance Reviews</h1>
-    <ul>
-        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-        <li><a href="{{ url_for('people_performance_dashboard') }}">Performance Dashboard</a></li>
-        <li><a href="{{ url_for('people_view_performance_reviews') }}">View All Evaluations</a></li>
-        <li><a href="{{ url_for('performance_reports') }}">Performance Reports</a></li>
-    </ul>
-    <h2>All Evaluations</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Employee</th>
-                <th>Business Result</th>
-                <th>Individual Result</th>
-                <th>Safety Result</th>
-                <th>Bonus Payout</th>
-                <th>Evaluation Date</th>
-                <th>Submitted By</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for review in reviews %}
-            <tr>
-                <td>{{ review.employee_id }}</td>
-                <td>{{ review.business_result }}%</td>
-                <td>{{ review.individual_result }}%</td>
-                <td>{{ review.safety_result }}%</td>
-                <td>{{ review.bonus_payout }}</td>
-                <td>{{ review.evaluation_date }}</td>
-                <td>{{ review.submitted_by }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+{% extends "base.html" %} {% block title %}View All Performance Reviews{%
+endblock %} {% block stylesheets %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/people_view_performance_reviews.css') }}"
+/>
+{% endblock %} {% block content %}
+<div class="performance-reviews-container">
+  <div class="performance-reviews-header">
+    <a
+      href="{{ url_for('people_performance_dashboard') }}"
+      class="performance-reviews-button"
+      >Performance Dashboard</a
+    >
+    <a
+      href="{{ url_for('people_view_performance_reviews') }}"
+      class="performance-reviews-button"
+      >View All Evaluations</a
+    >
+    <a
+      href="{{ url_for('performance_reports') }}"
+      class="performance-reviews-button"
+      >Performance Reports</a
+    >
+  </div>
+  <table class="performance-reviews-table">
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th>Business Result</th>
+        <th>Individual Result</th>
+        <th>Safety Result</th>
+        <th>Bonus Payout</th>
+        <th>Evaluation Date</th>
+        <th>Submitted By</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for review in reviews %}
+      <tr>
+        <td>{{ review.employee_id }}</td>
+        <td>{{ review.business_result }}%</td>
+        <td>{{ review.individual_result }}%</td>
+        <td>{{ review.safety_result }}%</td>
+        <td>{{ review.bonus_payout }}</td>
+        <td>{{ review.evaluation_date }}</td>
+        <td>{{ review.submitted_by }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
