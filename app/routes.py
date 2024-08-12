@@ -559,23 +559,22 @@ def init_routes(app):
     @app.route("/people/redirect_evaluation", methods=["GET", "POST"])
     def people_redirect_evaluation():
         if request.method == "POST":
-            evaluation_id = request.form['evaluation_id']
-            new_manager_id = request.form['new_manager_id']
+             # Logic for redirecting an evaluation to a different manager
+            pass
 
-            # Logic to update the evaluation's manager in the database
-            app.supabase.table("performance_reviews").update({
-                "submitted_by": new_manager_id
-            }).eq("id", evaluation_id).execute()
+        # Fetch all employees
+        employees = app.supabase.table("employees").select("employee_id", "employee_name", "auth_user_id").execute().data
 
-            flash("Evaluation redirected successfully.", "success")
-            return redirect(url_for("people_redirect_evaluation"))
+        # Filter employees who are Managers by looking up their role in the users table
+        managers = []
+        for employee in employees:
+            user_data = app.supabase.table("users").select("role").eq("user_id", employee["auth_user_id"]).execute().data
+            if user_data and user_data[0]["role"] == "Manager":
+                managers.append({"employee_id": employee["employee_id"], "employee_name": employee["employee_name"]})
 
-        # Fetch evaluations and managers
-        evaluations = app.supabase.table("performance_reviews").select("*").execute().data
-        managers = app.supabase.table("employees").select("employee_id", "employee_name").eq("role", "Manager").execute().data
-
+        # Logic to fetch evaluations to display on this page
+        evaluations = []  # Replace with your actual evaluation query
         return render_template("people_redirect_evaluation.html", evaluations=evaluations, managers=managers)
-
 
     @ app.route("/myteam/performance_reports")
     def performance_reports():
