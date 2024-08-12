@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Redirect Evaluations</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="evaluation_id">Select Evaluation</label>
+            <select name="evaluation_id" id="evaluation_id" class="form-control">
+                {% for evaluation in evaluations %}
+                    <option value="{{ evaluation.id }}">{{ evaluation.employee_id }} - {{ evaluation.evaluation_date }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="new_manager_id">Select New Manager</label>
+            <select name="new_manager_id" id="new_manager_id" class="form-control">
+                {% for manager in managers %}
+                    <option value="{{ manager.employee_id }}">{{ manager.employee_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Redirect Evaluation</button>
+    </form>
+</div>
+{% endblock %}

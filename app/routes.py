@@ -531,7 +531,7 @@ def init_routes(app):
                             f"No reviews found for employee with ID: {selected_employee_id}")
                         flash(
                             "No reviews found for the selected employee.", "warning")
-                        return redirect(url_for("view_evaluations"))
+                        return redirect(url_for("myteam_view_evaulations"))
 
             return render_template("myteam_view_evaluations.html", employees=employees)
 
@@ -540,6 +540,11 @@ def init_routes(app):
             logging.error(traceback.format_exc())
             flash("An error occurred while fetching evaluations.", "danger")
             return redirect(url_for("dashboard"))
+        
+    @app.route("/people/performance_dashboard")
+    def people_performance_dashboard():
+        # Your logic here, perhaps fetching data to display
+        return render_template("people_performance_dashboard.html")
 
     @ app.route("/people/view_performance_reviews", methods=["GET"])
     def people_view_performance_reviews():
@@ -550,6 +555,27 @@ def init_routes(app):
         reviews = app.supabase.table(
             "performance_reviews").select("*").execute().data
         return render_template("people_view_performance_reviews.html", reviews=reviews)
+    
+    @app.route("/people/redirect_evaluation", methods=["GET", "POST"])
+    def people_redirect_evaluation():
+        if request.method == "POST":
+            evaluation_id = request.form['evaluation_id']
+            new_manager_id = request.form['new_manager_id']
+
+            # Logic to update the evaluation's manager in the database
+            app.supabase.table("performance_reviews").update({
+                "submitted_by": new_manager_id
+            }).eq("id", evaluation_id).execute()
+
+            flash("Evaluation redirected successfully.", "success")
+            return redirect(url_for("people_redirect_evaluation"))
+
+        # Fetch evaluations and managers
+        evaluations = app.supabase.table("performance_reviews").select("*").execute().data
+        managers = app.supabase.table("employees").select("employee_id", "employee_name").eq("role", "Manager").execute().data
+
+        return render_template("people_redirect_evaluation.html", evaluations=evaluations, managers=managers)
+
 
     @ app.route("/myteam/performance_reports")
     def performance_reports():
