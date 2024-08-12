@@ -1,20 +1,22 @@
-<!-- myteam_performance_dashboard.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>My Team Performance Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/myteam_performance_dashboard.css') }}">
-</head>
-<body>
-    <h1>My Team Performance Dashboard</h1>
-    <nav>
-        <ul>
-            <li><a href="{{ url_for('complete_evaluations') }}">Complete Evaluations</a></li>
-            <li><a href="{{ url_for('view_evaluations') }}">View Evaluations</a></li>
-            <li><a href="{{ url_for('performance_reports') }}">Performance Reports</a></li>
-        </ul>
-    </nav>
-</body>
-</html>
+{% extends "base.html" %} {% block title %}My Team Performance Dashboard{%
+endblock %} {% block stylesheets %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/myteam_performance_dashboard.css') }}"
+/>
+{% endblock %} {% block content %}
+<div class="performance-dashboard-container">
+  <h1 class="performance-dashboard-title">My Team Performance Dashboard</h1>
+  <div class="performance-dashboard-buttons">
+    <a href="{{ url_for('complete_evaluations') }}" class="performance-button"
+      >Complete Evaluations</a
+    >
+    <a href="{{ url_for('view_evaluations') }}" class="performance-button"
+      >View Evaluations</a
+    >
+    <a href="{{ url_for('performance_reports') }}" class="performance-button"
+      >Performance Reports</a
+    >
+  </div>
+</div>
+{% endblock %}
