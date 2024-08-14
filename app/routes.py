@@ -83,7 +83,8 @@ def init_routes(app):
     def register():
         form = RegistrationForm()
         if form.validate_on_submit():
-            password_hash = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            password_hash = bcrypt.generate_password_hash(
+                form.password.data).decode('utf-8')
             user_data = {
                 "email": form.email.data,
                 "password": password_hash,
@@ -97,7 +98,8 @@ def init_routes(app):
                     "role": form.role.data,
                     "status": "pending"
                 }).execute()
-                flash("Registration successful. Please wait for admin approval.", "success")
+                flash(
+                    "Registration successful. Please wait for admin approval.", "success")
                 return redirect(url_for("login"))
             else:
                 flash("An error occurred during registration.", "danger")
@@ -540,7 +542,7 @@ def init_routes(app):
             logging.error(traceback.format_exc())
             flash("An error occurred while fetching evaluations.", "danger")
             return redirect(url_for("dashboard"))
-        
+
     @app.route("/people/performance_dashboard")
     def people_performance_dashboard():
         # Your logic here, perhaps fetching data to display
@@ -555,22 +557,25 @@ def init_routes(app):
         reviews = app.supabase.table(
             "performance_reviews").select("*").execute().data
         return render_template("people_view_performance_reviews.html", reviews=reviews)
-    
+
     @app.route("/people/redirect_evaluation", methods=["GET", "POST"])
     def people_redirect_evaluation():
         if request.method == "POST":
-             # Logic for redirecting an evaluation to a different manager
+            # Logic for redirecting an evaluation to a different manager
             pass
 
         # Fetch all employees
-        employees = app.supabase.table("employees").select("employee_id", "employee_name", "auth_user_id").execute().data
+        employees = app.supabase.table("employees").select(
+            "employee_id", "employee_name", "auth_user_id").execute().data
 
         # Filter employees who are Managers by looking up their role in the users table
         managers = []
         for employee in employees:
-            user_data = app.supabase.table("users").select("role").eq("user_id", employee["auth_user_id"]).execute().data
+            user_data = app.supabase.table("users").select("role").eq(
+                "user_id", employee["auth_user_id"]).execute().data
             if user_data and user_data[0]["role"] == "Manager":
-                managers.append({"employee_id": employee["employee_id"], "employee_name": employee["employee_name"]})
+                managers.append(
+                    {"employee_id": employee["employee_id"], "employee_name": employee["employee_name"]})
 
         # Logic to fetch evaluations to display on this page
         evaluations = []  # Replace with your actual evaluation query
@@ -613,44 +618,72 @@ def init_routes(app):
             return "Invitation sent!"
         return render_template('add_user.html', form=form)
 
-    @ app.route('/accept_user', methods=['GET'])
+    @app.route('/accept_user', methods=['GET'])
     def accept_user():
-        form = AcceptUserForm()
         email = request.args.get('email')
-        if form.validate_on_submit():
-            email = form.email.data
-            password = bcrypt.generate_password_hash(
-                form.password.data).decode('utf-8')
-            auth_response = app.supabase.auth.sign_up(credentials={
-                "email": email, "password": password
-            })
-            if auth_response:
-                app.supabase.table('users').insert({
-                    'user_id': form.user_id.data,
-                    'employee_id': form.employee_id.data,
-                    'username': form.username.data,
-                    'password': form.password.data,
-                    'email': form.email.data,
-                    'role': form.role.data,
-                    'created_at': form.created_at.data,
-                    'updated_at': form.updated_at.data,
-                    'status': form.status.data,
-                    'Name': form.name.data
-                }).execute()
-                app.supabase.table('employees').insert({
-                    'employee_id': form.employee_id.data,
-                    'title': form.title.data,
-                    'email': form.email.data,
-                    'reports_to': form.reports_to.data,
-                    'position_id': form.position_id.data,
-                    'hire_date': form.hire_date.data,
-                    'Seniority_date': form.seniority_date.data,
-                    'Department': form.department.data,
-                    'employee_name': form.employee_name.data,
-                    'Company_Code': form.company_code.data
-                }).execute()
-                flash("User accepted and added to the database!")
-                return redirect(url_for('dashboard'))
-            else:
-                flash("Failed to add user to the authentication")
-        return render_template('dashboard', form=form, email=email)
+
+        # Debugging
+        print("session data:", session.get('pending_user'))
+
+        # Retrieve user information from the session or temporary storage
+        user_info = session.get('pending_user')
+
+        if not user_info:
+            flash(
+                "Invalid or expired invitation link: No user info in session.", "danger")
+            return redirect(url_for('login'))
+
+        if user_info['email'] != email:
+            flash("Invalid or expired invitation link: Email mismatch.", 'danger')
+            return redirect(url_for('login'))
+
+        # Hash the password
+        password_hash = bcrypt.generate_password_hash(
+            user_info['password']).decode('utf-8')
+
+        # Create the user in Supabase authentication
+        auth_response = app.supabase.auth.sign_up({
+            "email": email,
+            "password": password_hash
+        })
+
+        if auth_response and auth_response.user:
+            user_id = user_info['user_id']
+            employee_id = user_info['employee_id']
+
+            # Insert user details into the database
+            app.supabase.table('users').insert({
+                'user_id': user_id,
+                'employee_id': employee_id,
+                'username': user_info['username'],
+                'password': password_hash,
+                'email': email,
+                'role': user_info['role'],
+                'created_at': user_info['created_at'],
+                'updated_at': user_info['updated_at'],
+                'status': 'active',  # Set the user status to active
+                'Name': user_info['name']
+            }).execute()
+
+            # Insert employee details into the `employees` table
+            app.supabase.table('employees').insert({
+                'employee_id': employee_id,
+                'title': user_info['title'],
+                'email': email,
+                'reports_to': user_info['reports_to'],
+                'position_id': user_info['position_id'],
+                'hire_date': user_info['hire_date'],
+                'Seniority_date': user_info['seniority_date'],
+                'Department': user_info['department'],
+                'employee_name': user_info['name'],
+                # Make sure this field exists
+                'Company_Code': user_info.get('company_code')
+            }).execute()
+
+            flash("Invitation accepted! User added to the database.", "success")
+            # Clear the session data
+            session.pop('pending_user', None)
+            return redirect(url_for('dashboard'))
+        else:
+            flash("Failed to accept the invitation and add the user.", "danger")
+            return redirect(url_for('login'))
