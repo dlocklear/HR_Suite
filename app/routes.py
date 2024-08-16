@@ -3,6 +3,7 @@ import logging
 import datetime
 import traceback
 import base64
+import uuid
 from werkzeug.utils import secure_filename
 from flask import render_template, request, jsonify, session, redirect, url_for, flash, json
 from app.forms import PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm, AcceptUserForm
@@ -585,105 +586,101 @@ def init_routes(app):
     def performance_reports():
         return render_template("performance_reports.html")
 
-    @ app.route("/add_user", methods=['GET', 'POST'])
+    @app.route("/add_user", methods=['GET', 'POST'])
     def add_user():
         form = RegistrationForm()
         if form.validate_on_submit():
-            user_info = {
-                "name": request.form['name'],
-                "user_id": request.form['user_id'],
-                "username": request.form['username'],
-                "email": request.form['email'],
-                "password": request.form['password'],
-                "role": request.form['role'],
-                "employee_id": request.form['employee_id'],
-                "title": request.form['title'],
-                "reports_to": request.form['reports_to'],
-                "position_id": request.form['position_id'],
-                "hire_date": request.form['hire_date'],
-                "created_at": request.form['created_at'],
-                "updated_at": request.form['updated_at'],
-                "seniority_date": request.form['seniority_date'],
-                "department": request.form['department'],
-                "status": request.form['status']
-            }
-            email = user_info['email']
+            # Generate a unique auth_user_id
+            auth_user_id = str(uuid.uuid4())
+
+            # Hash the password before storing it
+            password_hash = bcrypt.generate_password_hash(
+                form.password.data).decode('utf-8')
+
+            # Convert date fields to ISO format strings
+            hire_date_str = form.hire_date.data.isoformat() if form.hire_date.data else None
+            seniority_date_str = form.seniority_date.data.isoformat(
+            ) if form.seniority_date.data else None
+
+            # Insert data into the `employees` table
+            app.supabase.table('employees').insert({
+                'employee_id': form.employee_id.data,
+                'employee_name': form.name.data,
+                'title': form.title.data,
+                'email': form.email.data,
+                'reports_to': form.reports_to.data,
+                'position_id': form.position_id.data,
+                'hire_date': hire_date_str,
+                'Seniority_Date': seniority_date_str,
+                'Department': form.department.data,
+                'auth_user_id': auth_user_id,
+                'Company_Code': form.company_code.data
+            }).execute()
+
+            # Insert data into the `users` table with a status of 'pending'
+            user_id = form.user_id.data
+            app.supabase.table('users').insert({
+                'user_id': user_id,
+                'employee_id': form.employee_id.data,
+                'username': form.username.data,
+                'password': password_hash,
+                'email': form.email.data,
+                'role': form.role.data,
+                'auth_user_id': auth_user_id,
+                'status': 'pending',  # Set status to 'pending'
+                'Name': form.name.data
+            }).execute()
+
+            # Send the acceptance link via email
+            email = form.email.data
             acceptance_link = url_for(
-                'accept_user', email=email, _external=True)
+                'accept_user', auth_user_id=auth_user_id, _external=True)
             email_body = f"""
-            <p> Click the link to accept the invitation:
-            <a href="{acceptance_link}">Accept Invitation</a></p>
+            <p>Click the link to accept the invitation:</p>
+            <a href="{acceptance_link}">Accept Invitation</a>
             """
             send_email(email, "User Invitation", email_body)
-            return "Invitation sent!"
+            flash("Invitation sent!", "success")
+            return redirect(url_for('admin_dashboard'))
+
         return render_template('add_user.html', form=form)
 
     @app.route('/accept_user', methods=['GET'])
     def accept_user():
-        email = request.args.get('email')
+        auth_user_id = request.args.get('auth_user_id')
 
-        # Debugging
-        print("session data:", session.get('pending_user'))
+        # Retrieve user information from the users table using auth user id
+        result = app.supabase.get.table('users').select(
+            '*').eq('auth_user_id', auth_user_id).execute()
 
-        # Retrieve user information from the session or temporary storage
-        user_info = session.get('pending_user')
-
-        if not user_info:
-            flash(
-                "Invalid or expired invitation link: No user info in session.", "danger")
+        if not result.data:
+            flash("Invalid or expired invitation link.", "danger")
             return redirect(url_for('login'))
 
-        if user_info['email'] != email:
-            flash("Invalid or expired invitation link: Email mismatch.", 'danger')
-            return redirect(url_for('login'))
+        user_info = result.data[0]  # assuming the result contains only 1 entry
 
-        # Hash the password
-        password_hash = bcrypt.generate_password_hash(
-            user_info['password']).decode('utf-8')
+        # add the user to supabases authentication service
+        try:
+            auth_response = app.supabase.auth.sign_up({
+                "email": user_info['email'],
+                # Assuming password is hashed
+                "password": user_info['password']
+            })
 
-        # Create the user in Supabase authentication
-        auth_response = app.supabase.auth.sign_up({
-            "email": email,
-            "password": password_hash
-        })
+            if not auth_response or auth_response.user is None:
+                flash("Failed to create user insupabase authenication.", 'danger')
+                return redirect(url_for('login'))
 
-        if auth_response and auth_response.user:
-            user_id = user_info['user_id']
-            employee_id = user_info['employee_id']
+            # update the users table with the auth_user_id from supabase
+            app.supabase.table('users').update({
+                'status': 'approved',
+                'updated_at': 'now()',
+                'auth_user_id': auth_response.user['id']
+            }).eq('auth_user_id', auth_user_id).execute()
 
-            # Insert user details into the database
-            app.supabase.table('users').insert({
-                'user_id': user_id,
-                'employee_id': employee_id,
-                'username': user_info['username'],
-                'password': password_hash,
-                'email': email,
-                'role': user_info['role'],
-                'created_at': user_info['created_at'],
-                'updated_at': user_info['updated_at'],
-                'status': 'active',  # Set the user status to active
-                'Name': user_info['name']
-            }).execute()
-
-            # Insert employee details into the `employees` table
-            app.supabase.table('employees').insert({
-                'employee_id': employee_id,
-                'title': user_info['title'],
-                'email': email,
-                'reports_to': user_info['reports_to'],
-                'position_id': user_info['position_id'],
-                'hire_date': user_info['hire_date'],
-                'Seniority_date': user_info['seniority_date'],
-                'Department': user_info['department'],
-                'employee_name': user_info['name'],
-                # Make sure this field exists
-                'Company_Code': user_info.get('company_code')
-            }).execute()
-
-            flash("Invitation accepted! User added to the database.", "success")
-            # Clear the session data
-            session.pop('pending_user', None)
+            flash("Invitation accepted! Your account is now active.", 'success')
             return redirect(url_for('dashboard'))
-        else:
-            flash("Failed to accept the invitation and add the user.", "danger")
+
+        except Exception as e:
+            flash(f"Error occurred: {str(e)}", "danger")
             return redirect(url_for('login'))
