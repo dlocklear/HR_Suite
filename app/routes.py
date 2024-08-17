@@ -591,83 +591,95 @@ def init_routes(app):
         form = RegistrationForm()
         if form.validate_on_submit():
 
-            # Create user in supabase authentication system
             try:
+                # Start the transaction
+                app.supabase.postgrest.execute_sql('BEGIN;')
+
+                # Create user in supabase authentication system
                 auth_response = app.supabase.auth.sign_up({
                     "email": form.email.data,
                     "password": form.password.data
                 })
 
+                if not auth_response.user:
+                    raise Exception("Supabase Auth: User creation failed.")
+
                 # Extract the auth user id from supabase auth response
-                auth_user_id = auth_response.user['id']
+                auth_user_id = auth_response.user.id
+                print(
+                    f"User created in Supabase with auth user id: {auth_user_id}")
+
+                # Hash the password before storing it
+                password_hash = bcrypt.generate_password_hash(
+                    form.password.data).decode('utf-8')
+
+                # Convert date fields to ISO format strings
+                hire_date_str = form.hire_date.data.isoformat() if form.hire_date.data else None
+                seniority_date_str = form.seniority_date.data.isoformat(
+                ) if form.seniority_date.data else None
+
+                # Insert data into the `users` table with a status of 'pending'
+                response = app.supabase.table('users').insert({
+                    'user_id': form.user_id.data,
+                    'employee_id': form.employee_id.data,
+                    'username': form.username.data,
+                    'password': password_hash,
+                    'email': form.email.data,
+                    'role': form.role.data,
+                    'auth_user_id': auth_user_id,
+                    'status': 'pending',  # Set status to 'pending'
+                    'Name': form.name.data
+                }).execute()
+                print(f"User inserted into users table: {response}")
+                if not response.data:
+                    raise Exception("Failed to insert user into users table.")
+
+                # Insert data into the `employees` table
+                app.supabase.table('employees').insert({
+                    'employee_id': form.employee_id.data,
+                    'employee_name': form.name.data,
+                    'title': form.title.data,
+                    'email': form.email.data,
+                    'reports_to': form.reports_to.data,
+                    'position_id': form.position_id.data,
+                    'hire_date': hire_date_str,
+                    'Seniority_Date': seniority_date_str,
+                    'Department': form.department.data,
+                    'auth_user_id': auth_user_id,
+                    'Company_Code': form.company_code.data
+                }).execute()
+                print(f"Employee inserted into employees table: {response}")
+                if not response.data:
+                    raise Exception(
+                        "Failed to insert employee into employees table.")
+
+                # Commit the transaction if all steps succeed
+                app.supabase.postgrest.execute_sql("COMMIT;")
+
+                # Send the acceptance link via email
+                email = form.email.data
+                acceptance_link = url_for(
+                    'accept_user', auth_user_id=auth_user_id, _external=True)
+                email_body = f"""
+                <p>Click the link to accept the invitation:</p>
+                <a href="{acceptance_link}">Accept Invitation</a>
+                """
+                send_email(email, "User Invitation", email_body)
+                flash("Invitation sent!", "success")
+                print(f"Invitation sent to: {email}")
 
             except Exception as e:
-                flash(
-                    f"Error creating user in supabase authentication: {str(e)}", "danger")
+                # Rollback transaction if any steps fail
+                try:
+                    app.supabase.postgrest.execute_sql("ROLLBACK;")
+                    print("Transaction rolled back due to error.")
+                except Exception as rollback_error:
+                    print(f"Error during rollback: {rollback_error}")
+
+                flash(f"Error during the process: {str(e)}", "danger")
+                print(f"Error during the process: {str(e)}")
                 return redirect(url_for('add_user'))
 
-            # Hash the password before storing it
-            password_hash = bcrypt.generate_password_hash(
-                form.password.data).decode('utf-8')
-
-            # Convert date fields to ISO format strings
-            hire_date_str = form.hire_date.data.isoformat() if form.hire_date.data else None
-            seniority_date_str = form.seniority_date.data.isoformat(
-            ) if form.seniority_date.data else None
-
-            # Insert data into the `users` table with a status of 'pending'
-            user_id = form.user_id.data
-            app.supabase.table('users').insert({
-                'user_id': user_id,
-                'employee_id': form.employee_id.data,
-                'username': form.username.data,
-                'password': password_hash,
-                'email': form.email.data,
-                'role': form.role.data,
-                'auth_user_id': auth_user_id,
-                'status': 'pending',  # Set status to 'pending'
-                'Name': form.name.data
-            }).execute()
-
-            # Insert data into the `employees` table
-            app.supabase.table('employees').insert({
-                'employee_id': form.employee_id.data,
-                'employee_name': form.name.data,
-                'title': form.title.data,
-                'email': form.email.data,
-                'reports_to': form.reports_to.data,
-                'position_id': form.position_id.data,
-                'hire_date': hire_date_str,
-                'Seniority_Date': seniority_date_str,
-                'Department': form.department.data,
-                'auth_user_id': auth_user_id,
-                'Company_Code': form.company_code.data
-            }).execute()
-
-            # # Insert data into the `users` table with a status of 'pending'
-            # user_id = form.user_id.data
-            # app.supabase.table('users').insert({
-            #     'user_id': user_id,
-            #     'employee_id': form.employee_id.data,
-            #     'username': form.username.data,
-            #     'password': password_hash,
-            #     'email': form.email.data,
-            #     'role': form.role.data,
-            #     'auth_user_id': auth_user_id,
-            #     'status': 'pending',  # Set status to 'pending'
-            #     'Name': form.name.data
-            # }).execute()
-
-            # Send the acceptance link via email
-            email = form.email.data
-            acceptance_link = url_for(
-                'accept_user', auth_user_id=auth_user_id, _external=True)
-            email_body = f"""
-            <p>Click the link to accept the invitation:</p>
-            <a href="{acceptance_link}">Accept Invitation</a>
-            """
-            send_email(email, "User Invitation", email_body)
-            flash("Invitation sent!", "success")
             return redirect(url_for('admin_dashboard'))
 
         return render_template('add_user.html', form=form)
