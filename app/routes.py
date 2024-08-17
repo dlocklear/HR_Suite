@@ -590,8 +590,21 @@ def init_routes(app):
     def add_user():
         form = RegistrationForm()
         if form.validate_on_submit():
-            # Generate a unique auth_user_id
-            auth_user_id = str(uuid.uuid4())
+
+            # Create user in supabase authentication system
+            try:
+                auth_response = app.supabase.auth.sign_up({
+                    "email": form.email.data,
+                    "password": form.password.data
+                })
+
+                # Extract the auth user id from supabase auth response
+                auth_user_id = auth_response.user['id']
+
+            except Exception as e:
+                flash(
+                    f"Error creating user in supabase authentication: {str(e)}", "danger")
+                return redirect(url_for('add_user'))
 
             # Hash the password before storing it
             password_hash = bcrypt.generate_password_hash(
@@ -601,6 +614,20 @@ def init_routes(app):
             hire_date_str = form.hire_date.data.isoformat() if form.hire_date.data else None
             seniority_date_str = form.seniority_date.data.isoformat(
             ) if form.seniority_date.data else None
+
+            # Insert data into the `users` table with a status of 'pending'
+            user_id = form.user_id.data
+            app.supabase.table('users').insert({
+                'user_id': user_id,
+                'employee_id': form.employee_id.data,
+                'username': form.username.data,
+                'password': password_hash,
+                'email': form.email.data,
+                'role': form.role.data,
+                'auth_user_id': auth_user_id,
+                'status': 'pending',  # Set status to 'pending'
+                'Name': form.name.data
+            }).execute()
 
             # Insert data into the `employees` table
             app.supabase.table('employees').insert({
@@ -617,19 +644,19 @@ def init_routes(app):
                 'Company_Code': form.company_code.data
             }).execute()
 
-            # Insert data into the `users` table with a status of 'pending'
-            user_id = form.user_id.data
-            app.supabase.table('users').insert({
-                'user_id': user_id,
-                'employee_id': form.employee_id.data,
-                'username': form.username.data,
-                'password': password_hash,
-                'email': form.email.data,
-                'role': form.role.data,
-                'auth_user_id': auth_user_id,
-                'status': 'pending',  # Set status to 'pending'
-                'Name': form.name.data
-            }).execute()
+            # # Insert data into the `users` table with a status of 'pending'
+            # user_id = form.user_id.data
+            # app.supabase.table('users').insert({
+            #     'user_id': user_id,
+            #     'employee_id': form.employee_id.data,
+            #     'username': form.username.data,
+            #     'password': password_hash,
+            #     'email': form.email.data,
+            #     'role': form.role.data,
+            #     'auth_user_id': auth_user_id,
+            #     'status': 'pending',  # Set status to 'pending'
+            #     'Name': form.name.data
+            # }).execute()
 
             # Send the acceptance link via email
             email = form.email.data
@@ -668,7 +695,7 @@ def init_routes(app):
             })
 
             if not auth_response or auth_response.user is None:
-                flash("Failed to create user insupabase authenication.", 'danger')
+                flash("Failed to create user in supabase authenication.", 'danger')
                 return redirect(url_for('login'))
 
             # update the users table with the auth_user_id from supabase
