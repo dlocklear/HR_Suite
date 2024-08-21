@@ -3,6 +3,7 @@ import logging
 import datetime
 import traceback
 import base64
+import uuid
 from werkzeug.utils import secure_filename
 from flask import render_template, request, jsonify, session, redirect, url_for, flash, json
 from app.forms import PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm, AcceptUserForm
@@ -83,7 +84,8 @@ def init_routes(app):
     def register():
         form = RegistrationForm()
         if form.validate_on_submit():
-            password_hash = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            password_hash = bcrypt.generate_password_hash(
+                form.password.data).decode('utf-8')
             user_data = {
                 "email": form.email.data,
                 "password": password_hash,
@@ -97,7 +99,8 @@ def init_routes(app):
                     "role": form.role.data,
                     "status": "pending"
                 }).execute()
-                flash("Registration successful. Please wait for admin approval.", "success")
+                flash(
+                    "Registration successful. Please wait for admin approval.", "success")
                 return redirect(url_for("login"))
             else:
                 flash("An error occurred during registration.", "danger")
@@ -537,7 +540,7 @@ def init_routes(app):
             logging.error(traceback.format_exc())
             flash("An error occurred while fetching evaluations.", "danger")
             return redirect(url_for("dashboard"))
- 
+
     @app.route("/people/performance_dashboard")
     def people_performance_dashboard():
         # Your logic here, perhaps fetching data to display
@@ -552,22 +555,25 @@ def init_routes(app):
         reviews = app.supabase.table(
             "performance_reviews").select("*").execute().data
         return render_template("people_view_performance_reviews.html", reviews=reviews)
-    
+
     @app.route("/people/redirect_evaluation", methods=["GET", "POST"])
     def people_redirect_evaluation():
         if request.method == "POST":
-             # Logic for redirecting an evaluation to a different manager
+            # Logic for redirecting an evaluation to a different manager
             pass
 
         # Fetch all employees
-        employees = app.supabase.table("employees").select("employee_id", "employee_name", "auth_user_id").execute().data
+        employees = app.supabase.table("employees").select(
+            "employee_id", "employee_name", "auth_user_id").execute().data
 
         # Filter employees who are Managers by looking up their role in the users table
         managers = []
         for employee in employees:
-            user_data = app.supabase.table("users").select("role").eq("user_id", employee["auth_user_id"]).execute().data
+            user_data = app.supabase.table("users").select("role").eq(
+                "user_id", employee["auth_user_id"]).execute().data
             if user_data and user_data[0]["role"] == "Manager":
-                managers.append({"employee_id": employee["employee_id"], "employee_name": employee["employee_name"]})
+                managers.append(
+                    {"employee_id": employee["employee_id"], "employee_name": employee["employee_name"]})
 
         # Logic to fetch evaluations to display on this page
         evaluations = []  # Replace with your actual evaluation query
@@ -577,77 +583,104 @@ def init_routes(app):
     def performance_reports():
         return render_template("performance_reports.html")
 
-    @ app.route("/add_user", methods=['GET', 'POST'])
+    @app.route("/add_user", methods=['GET', 'POST'])
     def add_user():
         form = RegistrationForm()
         if form.validate_on_submit():
-            user_info = {
-                "name": request.form['name'],
-                "user_id": request.form['user_id'],
-                "username": request.form['username'],
-                "email": request.form['email'],
-                "password": request.form['password'],
-                "role": request.form['role'],
-                "employee_id": request.form['employee_id'],
-                "title": request.form['title'],
-                "reports_to": request.form['reports_to'],
-                "position_id": request.form['position_id'],
-                "hire_date": request.form['hire_date'],
-                "created_at": request.form['created_at'],
-                "updated_at": request.form['updated_at'],
-                "seniority_date": request.form['seniority_date'],
-                "department": request.form['department'],
-                "status": request.form['status']
-            }
-            email = user_info['email']
-            acceptance_link = url_for(
-                'accept_user', email=email, _external=True)
-            email_body = f"""
-            <p> Click the link to accept the invitation:
-            <a href="{acceptance_link}">Accept Invitation</a></p>
-            """
-            send_email(email, "User Invitation", email_body)
-            return "Invitation sent!"
+            try:
+                # Create user in supabase authentication system
+                auth_response = app.supabase.auth.sign_up({
+                    "email": form.email.data,
+                    "password": form.password.data
+                })
+                if not auth_response.user:
+                    raise Exception(f"Supabase Auth: User creation failed")
+
+                # Get auth_user_id from the response
+                auth_user_id = auth_response.user.id
+                print(
+                    f"User created in Supabase with auth user id: {auth_user_id}")
+
+                # hash password before storing in users table
+                password_hash = bcrypt.generate_password_hash(
+                    form.password.data).decode('utf-8')
+
+                # Call RPC function to perform transaction
+                response = app.supabase.rpc('add_user_atomic', {
+                    'p_user_id': form.user_id.data,
+                    'p_employee_id': form.employee_id.data,
+                    'p_username': form.username.data,
+                    'p_password': password_hash,
+                    'p_email': form.email.data,
+                    'p_role': form.role.data,
+                    'p_name': form.name.data,
+                    'p_title': form.title.data,
+                    'p_reports_to': form.reports_to.data,
+                    'p_position_id': form.position_id.data,
+                    'p_hire_date': form.hire_date.data.isoformat() if form.hire_date.data else None,
+                    'p_seniority_date': form.seniority_date.data.isoformat() if form.seniority_date.data else None,
+                    'p_department': form.department.data,
+                    'p_company_code': form.company_code.data
+                }).execute()
+
+                if not response.data:
+                    raise Exception("Failed to execute RPC function")
+
+                # Send acceptance link
+                email = form.email.data
+                acceptance_link = url_for('accept_user', _external=True)
+                email_body = f"""
+                <p>Click the link to accept the invitation:</p>
+                <a href="{acceptance_link}">Accept Invitation</a>
+                """
+                send_email(email, "User Invitation", email_body)
+                flash("Invitation sent!", "success")
+                print(f"Invitation sent to: {email}")
+
+            except Exception as e:
+                flash(f"Error during the process: {str(e)}", 'danger')
+                print(f"Error during the process: {str(e)}")
+                return redirect(url_for('add_user'))
+
+            return redirect(url_for('admin_dashboard'))
         return render_template('add_user.html', form=form)
 
-    @ app.route('/accept_user', methods=['GET'])
+    @app.route('/accept_user', methods=['GET'])
     def accept_user():
-        form = AcceptUserForm()
-        email = request.args.get('email')
-        if form.validate_on_submit():
-            email = form.email.data
-            password = bcrypt.generate_password_hash(
-                form.password.data).decode('utf-8')
-            auth_response = app.supabase.auth.sign_up(credentials={
-                "email": email, "password": password
+        auth_user_id = request.args.get('auth_user_id')
+
+        # Retrieve user information from the users table using auth user id
+        result = app.supabase.get.table('users').select(
+            '*').eq('auth_user_id', auth_user_id).execute()
+
+        if not result.data:
+            flash("Invalid or expired invitation link.", "danger")
+            return redirect(url_for('login'))
+
+        user_info = result.data[0]  # assuming the result contains only 1 entry
+
+        # add the user to supabases authentication service
+        try:
+            auth_response = app.supabase.auth.sign_up({
+                "email": user_info['email'],
+                # Assuming password is hashed
+                "password": user_info['password']
             })
-            if auth_response:
-                app.supabase.table('users').insert({
-                    'user_id': form.user_id.data,
-                    'employee_id': form.employee_id.data,
-                    'username': form.username.data,
-                    'password': form.password.data,
-                    'email': form.email.data,
-                    'role': form.role.data,
-                    'created_at': form.created_at.data,
-                    'updated_at': form.updated_at.data,
-                    'status': form.status.data,
-                    'Name': form.name.data
-                }).execute()
-                app.supabase.table('employees').insert({
-                    'employee_id': form.employee_id.data,
-                    'title': form.title.data,
-                    'email': form.email.data,
-                    'reports_to': form.reports_to.data,
-                    'position_id': form.position_id.data,
-                    'hire_date': form.hire_date.data,
-                    'Seniority_date': form.seniority_date.data,
-                    'Department': form.department.data,
-                    'employee_name': form.employee_name.data,
-                    'Company_Code': form.company_code.data
-                }).execute()
-                flash("User accepted and added to the database!")
-                return redirect(url_for('dashboard'))
-            else:
-                flash("Failed to add user to the authentication")
-        return render_template('dashboard', form=form, email=email)
+
+            if not auth_response or auth_response.user is None:
+                flash("Failed to create user in supabase authenication.", 'danger')
+                return redirect(url_for('login'))
+
+            # update the users table with the auth_user_id from supabase
+            app.supabase.table('users').update({
+                'status': 'approved',
+                'updated_at': 'now()',
+                'auth_user_id': auth_response.user['id']
+            }).eq('auth_user_id', auth_user_id).execute()
+
+            flash("Invitation accepted! Your account is now active.", 'success')
+            return redirect(url_for('dashboard'))
+
+        except Exception as e:
+            flash(f"Error occurred: {str(e)}", "danger")
+            return redirect(url_for('login'))
