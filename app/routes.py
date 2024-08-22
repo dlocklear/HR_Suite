@@ -479,7 +479,7 @@ def init_routes(app):
     @ app.route("/myteam/performance_dashboard")
     def performance_dashboard():
         return render_template("myteam_performance_dashboard.html")
-    
+
     @app.route("/myteam/view_evaluations", methods=["GET", "POST"])
     def view_evaluations():
         if "user" not in session:
@@ -496,20 +496,22 @@ def init_routes(app):
             logging.debug(f"Manager response: {manager_response}")
 
             if not manager_response.data:
-                logging.warning(f"Manager data not found for user ID: {user_id}")
+                logging.warning(
+                    f"Manager data not found for user ID: {user_id}")
                 flash("Manager data not found.", "danger")
                 return redirect(url_for("dashboard"))
 
             manager_employee_id = manager_response.data[0]["employee_id"]
             logging.debug(f"Manager Employee ID: {manager_employee_id}")
 
-             # Fetch employees reporting to the current manager
+            # Fetch employees reporting to the current manager
             employees_response = app.supabase.table("employees").select(
                 "employee_name, employee_id").eq("reports_to", manager_employee_id).execute()
             logging.debug(f"Employees response: {employees_response}")
 
             if not employees_response.data:
-                logging.warning(f"No employees found reporting to manager with ID: {manager_employee_id}")
+                logging.warning(
+                    f"No employees found reporting to manager with ID: {manager_employee_id}")
                 flash("No employees found reporting to you.", "warning")
                 return redirect(url_for("dashboard"))
 
@@ -521,7 +523,7 @@ def init_routes(app):
 
                 if selected_employee_id:
                     reviews_response = app.supabase.table("performance_reviews").select(
-                         "*").eq("employee_id", selected_employee_id).execute()
+                        "*").eq("employee_id", selected_employee_id).execute()
                     logging.debug(f"Reviews Response: {reviews_response}")
 
                     if reviews_response.data:
@@ -529,8 +531,10 @@ def init_routes(app):
                         # Ensure reviews are passed correctly to avoid messy output
                         return render_template("myteam_view_evaluations.html", employees=employees, reviews=reviews)
                     else:
-                        logging.warning(f"No reviews found for employee with ID: {selected_employee_id}")
-                        flash("No reviews found for the selected employee.", "warning")
+                        logging.warning(
+                            f"No reviews found for employee with ID: {selected_employee_id}")
+                        flash(
+                            "No reviews found for the selected employee.", "warning")
                         return redirect(url_for("view_evaluations"))
 
             return render_template("myteam_view_evaluations.html", employees=employees)
@@ -605,6 +609,14 @@ def init_routes(app):
                 password_hash = bcrypt.generate_password_hash(
                     form.password.data).decode('utf-8')
 
+                app.supabase.table('users').insert({
+                    'auth_user_id': auth_user_id,
+                    'user_id': 'PLACEHOLDER_USER_ID',  # Placeholder value
+                    'username': 'PLACEHOLDER_USERNAME',  # Placeholder value
+                    'email': form.email.data,  # Ensure email is not null
+                    'password': password_hash  # Use actual hashed password
+                }).execute()
+
                 # Call RPC function to perform transaction
                 response = app.supabase.rpc('add_user_atomic', {
                     'p_user_id': form.user_id.data,
@@ -620,7 +632,12 @@ def init_routes(app):
                     'p_hire_date': form.hire_date.data.isoformat() if form.hire_date.data else None,
                     'p_seniority_date': form.seniority_date.data.isoformat() if form.seniority_date.data else None,
                     'p_department': form.department.data,
-                    'p_company_code': form.company_code.data
+                    'p_company_code': form.company_code.data,
+                    'p_auth_user_id': auth_user_id,  # Pass the auth_user_id to the function
+                    'p_current_salary': form.current_salary.data,
+                    'p_effective_date': form.effective_date.data.isoformat() if form.effective_date.data else None,
+                    'p_pay_grade': form.pay_grade.data,
+                    'p_flsa_code': form.flsa_code.data
                 }).execute()
 
                 if not response.data:

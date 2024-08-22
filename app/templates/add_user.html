@@ -118,6 +118,33 @@
             {{ form.company_code }}
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>{{ form.pay_grade.label }}</label>
+            {{ form.pay_grade }}
+          </div>
+          <div class="form-group">
+            <label>{{ form.current_salary.label }}</label>
+            {{ form.current_salary }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>{{ form.flsa_code.label }}</label>
+            {{ form.flsa_code }}
+          </div>
+          <div class="form-group">
+            <label>{{ form.worker_category.label }}</label>
+            {{ form.worker_category }}
+          </div>
+        </div>
+        <!-- New effective_date field -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>{{ form.effective_date.label }}</label>
+            {{ form.effective_date }}
+          </div>
+        </div>
         <div>{{ form.submit(class="button") }}</div>
       </form>
     </div>

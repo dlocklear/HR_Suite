@@ -23,6 +23,14 @@ class RegistrationForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[
                              DataRequired(), Length(min=6)])
+    current_salary = StringField("Current Salary", validators=[
+        DataRequired()])
+    pay_grade = SelectField(
+        "Pay Grade",
+        choices=[("e0", "E0"), ("e1", "E1"), ("e2", "E2"), ("e3", "E3"), ("e4", "E4"),
+                 ("e5", "E5"), ("e6", "E6"), ("e7", "E7"), ("e8", "E8"), ("e9", "E9"), ("e10", "E10")],
+        validators=[DataRequired()],
+    )
     confirm_password = PasswordField(
         "Confirm Password", validators=[DataRequired(), EqualTo("password")]
     )
@@ -31,12 +39,24 @@ class RegistrationForm(FlaskForm):
         choices=[("user", "User"), ("manager", "Manager"), ("admin", "Admin")],
         validators=[DataRequired()],
     )
+    flsa_code = SelectField(
+        "FLSA Code",
+        choices=[("exempt", "Exempt"), ("non-exempt", "non-Exempt")],
+        validators=[DataRequired()],
+    )
+    worker_category = SelectField(
+        "Worker Category",
+        choices=[("full time", "Full Time"), ("part time", "Part Time")],
+        validators=[DataRequired()],
+    )
     employee_id = StringField("Employee ID", validators=[DataRequired()])
     title = StringField("Title", validators=[DataRequired()])
     reports_to = StringField("Reports To", validators=[DataRequired()])
     position_id = StringField("Position ID", validators=[DataRequired()])
     hire_date = DateField("Hire Date", format="%Y-%m-%d",
                           validators=[DataRequired()])
+    effective_date = DateField("Effective Date", format="%Y-%m-%d",
+                               validators=[DataRequired()])
     created_at = DateField("Created At", format="%Y-%m-%d",
                            validators=[DataRequired()])
     updated_at = DateField("Updated At", format="%Y-%m-%d",
