@@ -10,6 +10,7 @@ import io
 from app.forms import (PerformanceEvaluationForm, RegistrationForm, PasswordResetForm,
                        UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm)
 from app import send_email, bcrypt
+from utils import notifications
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -713,7 +714,7 @@ def init_routes(app):
 
         except Exception as e:
             flash(f"Error occurred: {str(e)}", "danger")
-            return redirect(url_for('login'))
+            return redirect(url_for('login')) 
 
     @app.route("/start_performance_review", methods=["POST"])
     def start_performance_review():
@@ -762,12 +763,3 @@ def init_routes(app):
 
         send_notifications_to_all("Performance reviews are complete!")
         return jsonify({"message": "Performance review process completed"}), 200
-
-    def send_notifications_to_all(message):
-        pass
-
-    def send_notifications_to_role(role, message):
-        pass
-
-    def send_notification_to_employee(employee_id, message):
-        pass
