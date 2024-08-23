@@ -540,6 +540,7 @@ def init_routes(app):
         form = RegistrationForm()
         if form.validate_on_submit():
             try:
+
                 # Check if email already exists in the users table
                 existing_user = app.supabase.table('users').select('auth_user_id').eq('email', form.email.data).execute()
                 if existing_user.data:
@@ -556,11 +557,25 @@ def init_routes(app):
                 auth_user_id = auth_response.user.id
                 print(f"User created in Supabase with auth user id: {auth_user_id}")
 
-                # Generate unique user id and hashed password
+<< << << < HEAD
+                # generate unique user id and hashed password
                 unique_user_id = str(uuid.uuid4())
                 password_hash = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
 
                 # Step 3: Call RPC to perform atomic insertion
+== == == =
+                password_hash = bcrypt.generate_password_hash(
+                    form.password.data).decode('utf-8')
+
+                app.supabase.table('users').insert({
+                    'auth_user_id': auth_user_id,
+                    'user_id': 'PLACEHOLDER_USER_ID',
+                    'username': 'PLACEHOLDER_USERNAME',
+                    'email': form.email.data,
+                    'password': password_hash
+                }).execute()
+
+>>>>>> > 47cef0213233ea7bbf799b1b4b2616135db3802d
                 response = app.supabase.rpc('add_user_atomic', {
                     'p_user_id': unique_user_id,
                     'p_employee_id': form.employee_id.data,
@@ -577,6 +592,10 @@ def init_routes(app):
                     'p_department': form.department.data,
                     'p_company_code': form.company_code.data,
                     'p_auth_user_id': auth_user_id,  # Pass the auth_user_id to the function
+                    'p_worker_category': form.worker_category.data,
+== == == =
+                    'p_auth_user_id': auth_user_id,
+>>>>>> > 47cef0213233ea7bbf799b1b4b2616135db3802d
                     'p_current_salary': form.current_salary.data,
                     'p_effective_date': form.effective_date.data.isoformat() if form.effective_date.data else None,
                     'p_pay_grade': form.pay_grade.data,
@@ -608,7 +627,8 @@ def init_routes(app):
     def accept_user():
         auth_user_id = request.args.get('auth_user_id')
 
-        result = app.supabase.table('users').select('*').eq('auth_user_id', auth_user_id).execute()
+        result = app.supabase.table('users').select(
+            '*').eq('auth_user_id', auth_user_id).execute()
 
         if not result.data:
             flash("Invalid or expired invitation link.", "danger")
@@ -637,7 +657,7 @@ def init_routes(app):
 
         except Exception as e:
             flash(f"Error occurred: {str(e)}", "danger")
-            return redirect(url_for('login')) 
+            return redirect(url_for('login'))
 
     @app.route("/start_performance_review", methods=["POST"])
     def start_performance_review():
@@ -652,7 +672,8 @@ def init_routes(app):
         if "user" not in session or session["user"]["role"] != "Admin":
             return jsonify({"error": "Unauthorized"}), 403
 
-        send_notifications_to_role("Manager", "Please start the performance reviews.")
+        send_notifications_to_role(
+            "Manager", "Please start the performance reviews.")
         return jsonify({"message": "Managers notified"}), 200
 
     @app.route("/submit_review", methods=["POST"])
@@ -675,7 +696,8 @@ def init_routes(app):
             "evaluation_date": datetime.datetime.now()
         }).execute()
 
-        send_notification_to_employee(employee_id, "Your performance review is complete.")
+        send_notification_to_employee(
+            employee_id, "Your performance review is complete.")
 
         return jsonify({"message": "Review submitted"}), 200
 
