@@ -19,14 +19,26 @@
         <ul>
           <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
           <li><a href="#">Calculation Configuration</a></li>
-          <li><a href="{{ url_for('workflows') }}" class="button">Workflows</a></li>
+          <li>
+            <a href="{{ url_for('workflows') }}" class="button">Workflows</a>
+          </li>
           <li><a href="/logout" class="logout-btn">Logout</a></li>
         </ul>
       </nav>
     </header>
     <main class="container">
       <h1>Admin Dashboard</h1>
-      <a href="{{ url_for('add_user') }}" class="button">Add User</a>
+      <div class="button-group">
+        <a href="{{ url_for('create_user') }}" class="button"
+          >Create User Permissions</a
+        >
+        <a href="{{ url_for('employee_position') }}" class="button"
+          >Employee Position</a
+        >
+        <a href="{{ url_for('employee_profile') }}" class="button"
+          >Employee Profile</a
+        >
+      </div>
       <section>
         <h2>Password Reset</h2>
         <a

@@ -249,3 +249,25 @@ class AcceptUserForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password', validators=[
                                      DataRequired(), EqualTo('password')])
     submit = SubmitField('Accept Invitation')
+
+
+class CreateUserForm(FlaskForm):
+    employee_id = StringField('Employee ID', validators=[
+                              DataRequired(), Length(max=50)])
+    username = StringField('Username', validators=[
+                           DataRequired(), Length(min=3, max=255)])
+    password = PasswordField('Password', validators=[
+        DataRequired(),
+        Length(min=6, max=36),
+        EqualTo('confirm_password', message='Passwords must match')
+    ])
+    confirm_password = PasswordField(
+        'Confirm Password', validators=[DataRequired()])
+    email = StringField('Email', validators=[
+                        DataRequired(), Email(), Length(max=255)])
+    role = SelectField('Role', choices=[
+                       ('admin', 'Admin'), ('manager', 'Manager'), ('employee', 'Employee')], validators=[DataRequired()])
+    name = StringField('Name', validators=[DataRequired(), Length(max=255)])
+    status = SelectField('Status', choices=[
+                         ('pending', 'Pending'), ('approved', 'Approved')], validators=[DataRequired()])
+    submit = SubmitField('Create User')
