@@ -10,7 +10,7 @@ import io
 from app.forms import (PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, 
                        PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm)
 from app import send_email, bcrypt
-from utils import notifications
+from app.utils.notifications import send_notification, send_notifications_to_all, send_notifications_to_role, send_notification_to_employee
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -685,3 +685,20 @@ def init_routes(app):
 
         send_notifications_to_all("Performance reviews are complete!")
         return jsonify({"message": "Performance review process completed"}), 200
+    
+    @app.route("/workflows", methods=["GET"])
+    def workflows():
+        if "user" not in session or session["user"]["role"] != "Admin":
+            flash("Unauthorized access.", "danger")
+            return redirect(url_for("dashboard"))
+        return render_template("workflows.html")
+   
+    @app.route("/trigger_workflow", methods=["POST"])
+    def trigger_workflow():
+        if "user" not in session or session["user"]["role"] != "Admin":
+            return jsonify({"error": "Unauthorized"}), 403
+
+        # Assuming you have a function that starts the workflow
+        start_performance_review()
+        flash("Performance Review Workflow triggered.", "success")
+        return redirect(url_for("workflows"))
