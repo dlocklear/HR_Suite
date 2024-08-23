@@ -592,6 +592,13 @@ def init_routes(app):
         form = RegistrationForm()
         if form.validate_on_submit():
             try:
+
+                # Check if email already exists in the users table
+                existing_user = app.supabase.table('users').select(
+                    'auth_user_id').eq('email', form.email.data).execute()
+                if existing_user.data:
+                    raise Exception("A user with this email already exists.")
+
                 # Create user in supabase authentication system
                 auth_response = app.supabase.auth.sign_up({
                     "email": form.email.data,
@@ -605,24 +612,17 @@ def init_routes(app):
                 print(
                     f"User created in Supabase with auth user id: {auth_user_id}")
 
-                # hash password before storing in users table
+                # generate unique user id and hashed password
+                unique_user_id = str(uuid.uuid4())
                 password_hash = bcrypt.generate_password_hash(
                     form.password.data).decode('utf-8')
 
-                app.supabase.table('users').insert({
-                    'auth_user_id': auth_user_id,
-                    'user_id': 'PLACEHOLDER_USER_ID',  # Placeholder value
-                    'username': 'PLACEHOLDER_USERNAME',  # Placeholder value
-                    'email': form.email.data,  # Ensure email is not null
-                    'password': password_hash  # Use actual hashed password
-                }).execute()
-
-                # Call RPC function to perform transaction
+                # Step 3: Call RPC to perform atomic insertion
                 response = app.supabase.rpc('add_user_atomic', {
-                    'p_user_id': form.user_id.data,
+                    'p_user_id': unique_user_id,
                     'p_employee_id': form.employee_id.data,
                     'p_username': form.username.data,
-                    'p_password': password_hash,
+                    'p_password': password_hash,  # Use the same hashed password
                     'p_email': form.email.data,
                     'p_role': form.role.data,
                     'p_name': form.name.data,
@@ -634,6 +634,7 @@ def init_routes(app):
                     'p_department': form.department.data,
                     'p_company_code': form.company_code.data,
                     'p_auth_user_id': auth_user_id,  # Pass the auth_user_id to the function
+                    'p_worker_category': form.worker_category.data,
                     'p_current_salary': form.current_salary.data,
                     'p_effective_date': form.effective_date.data.isoformat() if form.effective_date.data else None,
                     'p_pay_grade': form.pay_grade.data,
