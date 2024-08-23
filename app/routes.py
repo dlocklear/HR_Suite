@@ -5,16 +5,16 @@ import traceback
 import base64
 import uuid
 from werkzeug.utils import secure_filename
-from flask import render_template, request, jsonify, session, redirect, url_for, flash, json
-from app.forms import PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm, AcceptUserForm
+from flask import render_template, request, jsonify, session, redirect, url_for, flash, send_file
+import io
+from app.forms import (PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, 
+                       PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm)
 from app import send_email, bcrypt
 
 logging.basicConfig(level=logging.DEBUG)
 
-
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in {"pdf", "docx", "csv"}
-
 
 def init_routes(app):
     @app.route("/")
@@ -28,11 +28,9 @@ def init_routes(app):
         if request.method == "POST":
             email = request.form["email"]
             password = request.form["password"]
-            response = app.supabase.auth.sign_in_with_password(
-                {"email": email, "password": password})
+            response = app.supabase.auth.sign_in_with_password({"email": email, "password": password})
             if response.user:
-                user_data = app.supabase.table("users").select(
-                    "role").eq("auth_user_id", response.user.id).execute()
+                user_data = app.supabase.table("users").select("role").eq("auth_user_id", response.user.id).execute()
                 session["user"] = {
                     "id": response.user.id,
                     "email": response.user.email,
@@ -62,8 +60,7 @@ def init_routes(app):
         if "user" not in session or session["user"]["role"] != "SuperUser":
             flash("You need admin privileges to access this page.")
             return redirect(url_for("login"))
-        users = app.supabase.table("users").select(
-            "*").eq("status", "pending").execute().data
+        users = app.supabase.table("users").select("*").eq("status", "pending").execute().data
         return render_template("admin_dashboard.html", users=users)
 
     @app.route("/approve_user/<int:user_id>")
@@ -71,12 +68,9 @@ def init_routes(app):
         if "user" not in session or session["user"]["role"] != "SuperUser":
             flash("You need admin privileges to access this page.")
             return redirect(url_for("login"))
-        user = app.supabase.table("users").select(
-            "*").eq("id", user_id).execute().data[0]
-        app.supabase.table("users").update(
-            {"status": "approved"}).eq("id", user_id).execute()
-        app.supabase.auth.update_user(
-            user["auth_user_id"], {"data": {"status": "approved"}})
+        user = app.supabase.table("users").select("*").eq("id", user_id).execute().data[0]
+        app.supabase.table("users").update({"status": "approved"}).eq("id", user_id).execute()
+        app.supabase.auth.update_user(user["auth_user_id"], {"data": {"status": "approved"}})
         flash("User has been approved.", "success")
         return redirect(url_for("admin_dashboard"))
 
@@ -84,8 +78,7 @@ def init_routes(app):
     def register():
         form = RegistrationForm()
         if form.validate_on_submit():
-            password_hash = bcrypt.generate_password_hash(
-                form.password.data).decode('utf-8')
+            password_hash = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
             user_data = {
                 "email": form.email.data,
                 "password": password_hash,
@@ -99,8 +92,7 @@ def init_routes(app):
                     "role": form.role.data,
                     "status": "pending"
                 }).execute()
-                flash(
-                    "Registration successful. Please wait for admin approval.", "success")
+                flash("Registration successful. Please wait for admin approval.", "success")
                 return redirect(url_for("login"))
             else:
                 flash("An error occurred during registration.", "danger")
@@ -117,8 +109,7 @@ def init_routes(app):
             new_password = request.form["new_password"]
 
             try:
-                response = app.supabase.auth.admin.update_user(
-                    user_id, {"password": new_password})
+                response = app.supabase.auth.admin.update_user(user_id, {"password": new_password})
                 if response.error:
                     flash(f"Error updating password: {response.error.message}")
                 else:
@@ -140,8 +131,7 @@ def init_routes(app):
 
         if form.validate_on_submit():
             new_password = form.new_password.data
-            response = app.supabase.auth.api.update_user_by_email(
-                user_email, {"password": new_password})
+            response = app.supabase.auth.api.update_user_by_email(user_email, {"password": new_password})
             if response.error:
                 flash(f"Error resetting password: {response.error.message}")
             else:
@@ -156,8 +146,7 @@ def init_routes(app):
             return redirect(url_for("login"))
 
         user_id = session["user"]["id"]
-        employee_data = app.supabase.table("employees").select(
-            "*").eq("auth_user_id", user_id).execute().data[0]
+        employee_data = app.supabase.table("employees").select("*").eq("auth_user_id", user_id).execute().data[0]
 
         return render_template("employment.html", employee=employee_data)
 
@@ -174,15 +163,12 @@ def init_routes(app):
             flash("You do not have the necessary permissions to view this page.")
             return redirect(url_for("dashboard"))
 
-        current_employee = app.supabase.table("employees").select(
-            "employee_id").eq("auth_user_id", user_id).execute().data[0]
+        current_employee = app.supabase.table("employees").select("employee_id").eq("auth_user_id", user_id).execute().data[0]
         current_employee_id = current_employee["employee_id"]
 
-        employees = app.supabase.table("employees").select(
-            "*").eq("reports_to", current_employee_id).execute().data
+        employees = app.supabase.table("employees").select("*").eq("reports_to", current_employee_id).execute().data
 
-        logging.debug(
-            f"Employees reporting to {current_employee_id}: {employees}")
+        logging.debug(f"Employees reporting to {current_employee_id}: {employees}")
 
         return render_template("myteam_employment.html", employees=employees)
 
@@ -193,16 +179,14 @@ def init_routes(app):
             return redirect(url_for("login"))
 
         form = RegistrationForm()
-        user = app.supabase.table("employees").select(
-            "*").eq("id", user_id).execute().data[0]
+        user = app.supabase.table("employees").select("*").eq("id", user_id).execute().data[0]
 
         if request.method == "GET":
             form.name.data = user["employee_name"].strip()
             form.email.data = user["email"].strip()
             form.employee_id.data = user["employee_id"].strip()
             form.title.data = user["title"].strip()
-            form.reports_to.data = user["reports_to"].strip(
-            ) if user["reports_to"] else ""
+            form.reports_to.data = user["reports_to"].strip() if user["reports_to"] else ""
             form.hire_date.data = user["hire_date"]
             form.seniority_date.data = user["seniority_date"]
             form.department.data = user["department"].strip()
@@ -238,8 +222,7 @@ def init_routes(app):
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file_content = file.read()
-                file_content_encoded = base64.b64encode(
-                    file_content).decode("utf-8")
+                file_content_encoded = base64.b64encode(file_content).decode("utf-8")
                 file_type = file.filename.rsplit(".", 1)[1].lower()
                 user_id = session["user"]["id"]
 
@@ -253,12 +236,10 @@ def init_routes(app):
                 flash("File uploaded and metadata saved successfully.", "success")
                 return redirect(url_for("electronic_services"))
             else:
-                flash(
-                    "Invalid file type. Only PDF, DOCX, and CSV are allowed.", "danger")
+                flash("Invalid file type. Only PDF, DOCX, and CSV are allowed.", "danger")
 
         user_id = session["user"]["id"]
-        files = app.supabase.table("electronic_services").select(
-            "*").eq("user_id", user_id).execute().data
+        files = app.supabase.table("electronic_services").select("*").eq("user_id", user_id).execute().data
 
         return render_template("electronic_services.html", form=form, files=files)
 
@@ -268,8 +249,7 @@ def init_routes(app):
             flash("You need to be logged in to perform this action.")
             return redirect(url_for("login"))
 
-        app.supabase.table("electronic_services").delete().eq(
-            "id", id).execute()
+        app.supabase.table("electronic_services").delete().eq("id", id).execute()
 
         flash("File deleted successfully.", "success")
         return redirect(url_for("electronic_services"))
@@ -278,13 +258,11 @@ def init_routes(app):
     def download_file(id):
         fillable = request.args.get("fillable", False)
         if fillable:
-            file_data = app.supabase.table("electronic_services").select(
-                "file_name", "fillable_file_content").eq("id", id).execute().data[0]
+            file_data = app.supabase.table("electronic_services").select("file_name", "fillable_file_content").eq("id", id).execute().data[0]
             file_content = base64.b64decode(file_data["fillable_file_content"])
             filename = "fillable_" + file_data["file_name"]
         else:
-            file_data = app.supabase.table("electronic_services").select(
-                "file_name", "file_content").eq("id", id).execute().data[0]
+            file_data = app.supabase.table("electronic_services").select("file_name", "file_content").eq("id", id).execute().data[0]
             file_content = base64.b64decode(file_data["file_content"])
             filename = file_data["file_name"]
 
@@ -319,32 +297,27 @@ def init_routes(app):
 
         try:
             cleaned_employee_name = employee_name.strip().lower()
-            logging.debug(
-                "Searching for employee with cleaned name: %s", {cleaned_employee_name})
+            logging.debug("Searching for employee with cleaned name: %s", cleaned_employee_name)
 
             response = app.supabase.table('employees').select('*').execute()
             if response.error:
                 logging.error(f"Supabase error: {response.error}")
                 return jsonify({'error': 'Supabase error', 'message': response.error.message}), 500
 
-            employees = [
-                emp for emp in response.data if cleaned_employee_name in emp['employee_name'].lower()]
+            employees = [emp for emp in response.data if cleaned_employee_name in emp['employee_name'].lower()]
 
             if not employees:
-                logging.warning(
-                    f"No employee found for cleaned name: {cleaned_employee_name}")
+                logging.warning(f"No employee found for cleaned name: {cleaned_employee_name}")
                 return jsonify({'error': 'Employee not found'}), 404
 
             employee = employees[0]
             logging.debug(f"Employee data: {employee}")
 
-            supervisor_response = app.supabase.table('employees').select(
-                'title').eq('employee_id', employee['reports_to']).execute()
+            supervisor_response = app.supabase.table('employees').select('title').eq('employee_id', employee['reports_to']).execute()
             logging.debug(f"Supervisor response: {supervisor_response}")
 
             if supervisor_response.error:
-                logging.error(
-                    f"Supabase error (supervisor): {supervisor_response.error}")
+                logging.error(f"Supabase error (supervisor): {supervisor_response.error}")
                 return jsonify({'error': 'Supabase error (supervisor)', 'message': supervisor_response.error.message}), 500
 
             supervisor_position = supervisor_response.data[0]['title'] if supervisor_response.data else ''
@@ -373,15 +346,11 @@ def init_routes(app):
         # Fetch employees for the dropdown
         try:
             user_id = session['user']['id']
-            current_employee = app.supabase.table('employees').select(
-                'employee_id').eq('auth_user_id', user_id).execute().data[0]
+            current_employee = app.supabase.table('employees').select('employee_id').eq('auth_user_id', user_id).execute().data[0]
             current_employee_id = current_employee['employee_id']
-            employees = app.supabase.table('employees').select(
-                'employee_name, employee_id').eq('reports_to', current_employee_id).execute().data
-            form.employee_id.choices = [
-                (employee['employee_id'], employee['employee_name']) for employee in employees]
-            logging.debug(
-                "Employees fetched for dropdown: %s", form.employee_id.choices)
+            employees = app.supabase.table('employees').select('employee_name, employee_id').eq('reports_to', current_employee_id).execute().data
+            form.employee_id.choices = [(employee['employee_id'], employee['employee_name']) for employee in employees]
+            logging.debug("Employees fetched for dropdown: %s", form.employee_id.choices)
         except Exception as e:
             logging.error("Error fetching employees: %s", e)
             flash("Error fetching employees.", "danger")
@@ -398,20 +367,17 @@ def init_routes(app):
                     f"Form data: employee_id={employee_id}, business_result={business_result}, individual_result={individual_result}, safety_result={safety_result}")
 
                 # Correct query now that employee_id is in position table
-                position_response = app.supabase.table('position').select(
-                    'pay_grade').eq('employee_id', employee_id).execute()
+                position_response = app.supabase.table('position').select('pay_grade').eq('employee_id', employee_id).execute()
                 if not position_response.data:
                     flash('Position data not found', 'danger')
                     return redirect(url_for('complete_evaluations'))
                 pay_grade = position_response.data[0]['pay_grade']
-                salary_response = app.supabase.table('salaries').select(
-                    'current_salary').eq('employee_id', employee_id).execute()
+                salary_response = app.supabase.table('salaries').select('current_salary').eq('employee_id', employee_id).execute()
                 if not salary_response.data:
                     flash('Salary data not found', 'danger')
                     return redirect(url_for('complete_evaluations'))
                 salary = Decimal(salary_response.data[0]['current_salary'])
-                pay_band_response = app.supabase.table('pay_bands').select(
-                    '*').eq('band', pay_grade).execute()
+                pay_band_response = app.supabase.table('pay_bands').select('*').eq('band', pay_grade).execute()
                 if not pay_band_response.data:
                     flash('Pay band data not found', 'danger')
                     return redirect(url_for('complete_evaluations'))
@@ -455,15 +421,13 @@ def init_routes(app):
                 }
                 logging.debug("Data prepared for insertion: {data}")
 
-                insert_response = app.supabase.table(
-                    'performance_reviews').insert(data).execute()
+                insert_response = app.supabase.table('performance_reviews').insert(data).execute()
                 logging.debug(f"Insert response: {insert_response}")
 
                 if insert_response.data:
                     flash("Evaluation submitted successfully.", "success")
                 else:
-                    flash(
-                        "An error occurred while submitting the evaluation.", "danger")
+                    flash("An error occurred while submitting the evaluation.", "danger")
 
                 return redirect(url_for('complete_evaluations'))
 
@@ -476,7 +440,7 @@ def init_routes(app):
 
         return render_template('complete_evaluations.html', form=form)
 
-    @ app.route("/myteam/performance_dashboard")
+    @app.route("/myteam/performance_dashboard")
     def performance_dashboard():
         return render_template("myteam_performance_dashboard.html")
 
@@ -491,13 +455,11 @@ def init_routes(app):
 
         try:
             # Fetch the current manager's employee_id
-            manager_response = app.supabase.table("employees").select(
-                "employee_id").eq("auth_user_id", user_id).execute()
+            manager_response = app.supabase.table("employees").select("employee_id").eq("auth_user_id", user_id).execute()
             logging.debug(f"Manager response: {manager_response}")
 
             if not manager_response.data:
-                logging.warning(
-                    f"Manager data not found for user ID: {user_id}")
+                logging.warning(f"Manager data not found for user ID: {user_id}")
                 flash("Manager data not found.", "danger")
                 return redirect(url_for("dashboard"))
 
@@ -505,13 +467,11 @@ def init_routes(app):
             logging.debug(f"Manager Employee ID: {manager_employee_id}")
 
             # Fetch employees reporting to the current manager
-            employees_response = app.supabase.table("employees").select(
-                "employee_name, employee_id").eq("reports_to", manager_employee_id).execute()
+            employees_response = app.supabase.table("employees").select("employee_name, employee_id").eq("reports_to", manager_employee_id).execute()
             logging.debug(f"Employees response: {employees_response}")
 
             if not employees_response.data:
-                logging.warning(
-                    f"No employees found reporting to manager with ID: {manager_employee_id}")
+                logging.warning(f"No employees found reporting to manager with ID: {manager_employee_id}")
                 flash("No employees found reporting to you.", "warning")
                 return redirect(url_for("dashboard"))
 
@@ -522,19 +482,15 @@ def init_routes(app):
                 logging.debug(f"Selected Employee ID: {selected_employee_id}")
 
                 if selected_employee_id:
-                    reviews_response = app.supabase.table("performance_reviews").select(
-                        "*").eq("employee_id", selected_employee_id).execute()
+                    reviews_response = app.supabase.table("performance_reviews").select("*").eq("employee_id", selected_employee_id).execute()
                     logging.debug(f"Reviews Response: {reviews_response}")
 
                     if reviews_response.data:
                         reviews = reviews_response.data
-                        # Ensure reviews are passed correctly to avoid messy output
                         return render_template("myteam_view_evaluations.html", employees=employees, reviews=reviews)
                     else:
-                        logging.warning(
-                            f"No reviews found for employee with ID: {selected_employee_id}")
-                        flash(
-                            "No reviews found for the selected employee.", "warning")
+                        logging.warning(f"No reviews found for employee with ID: {selected_employee_id}")
+                        flash("No reviews found for the selected employee.", "warning")
                         return redirect(url_for("view_evaluations"))
 
             return render_template("myteam_view_evaluations.html", employees=employees)
@@ -547,43 +503,34 @@ def init_routes(app):
 
     @app.route("/people/performance_dashboard")
     def people_performance_dashboard():
-        # Your logic here, perhaps fetching data to display
         return render_template("people_performance_dashboard.html")
 
-    @ app.route("/people/view_performance_reviews", methods=["GET"])
+    @app.route("/people/view_performance_reviews", methods=["GET"])
     def people_view_performance_reviews():
         if "user" not in session:
             flash("You need to be logged in to view this page.")
             return redirect(url_for("login"))
 
-        reviews = app.supabase.table(
-            "performance_reviews").select("*").execute().data
+        reviews = app.supabase.table("performance_reviews").select("*").execute().data
         return render_template("people_view_performance_reviews.html", reviews=reviews)
 
     @app.route("/people/redirect_evaluation", methods=["GET", "POST"])
     def people_redirect_evaluation():
         if request.method == "POST":
-            # Logic for redirecting an evaluation to a different manager
             pass
 
-        # Fetch all employees
-        employees = app.supabase.table("employees").select(
-            "employee_id", "employee_name", "auth_user_id").execute().data
+        employees = app.supabase.table("employees").select("employee_id", "employee_name", "auth_user_id").execute().data
 
-        # Filter employees who are Managers by looking up their role in the users table
         managers = []
         for employee in employees:
-            user_data = app.supabase.table("users").select("role").eq(
-                "user_id", employee["auth_user_id"]).execute().data
+            user_data = app.supabase.table("users").select("role").eq("user_id", employee["auth_user_id"]).execute().data
             if user_data and user_data[0]["role"] == "Manager":
-                managers.append(
-                    {"employee_id": employee["employee_id"], "employee_name": employee["employee_name"]})
+                managers.append({"employee_id": employee["employee_id"], "employee_name": employee["employee_name"]})
 
-        # Logic to fetch evaluations to display on this page
-        evaluations = []  # Replace with your actual evaluation query
+        evaluations = []
         return render_template("people_redirect_evaluation.html", evaluations=evaluations, managers=managers)
 
-    @ app.route("/myteam/performance_reports")
+    @app.route("/myteam/performance_reports")
     def performance_reports():
         return render_template("performance_reports.html")
 
@@ -592,7 +539,6 @@ def init_routes(app):
         form = RegistrationForm()
         if form.validate_on_submit():
             try:
-                # Create user in supabase authentication system
                 auth_response = app.supabase.auth.sign_up({
                     "email": form.email.data,
                     "password": form.password.data
@@ -600,24 +546,19 @@ def init_routes(app):
                 if not auth_response.user:
                     raise Exception(f"Supabase Auth: User creation failed")
 
-                # Get auth_user_id from the response
                 auth_user_id = auth_response.user.id
-                print(
-                    f"User created in Supabase with auth user id: {auth_user_id}")
+                print(f"User created in Supabase with auth user id: {auth_user_id}")
 
-                # hash password before storing in users table
-                password_hash = bcrypt.generate_password_hash(
-                    form.password.data).decode('utf-8')
+                password_hash = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
 
                 app.supabase.table('users').insert({
                     'auth_user_id': auth_user_id,
-                    'user_id': 'PLACEHOLDER_USER_ID',  # Placeholder value
-                    'username': 'PLACEHOLDER_USERNAME',  # Placeholder value
-                    'email': form.email.data,  # Ensure email is not null
-                    'password': password_hash  # Use actual hashed password
+                    'user_id': 'PLACEHOLDER_USER_ID',
+                    'username': 'PLACEHOLDER_USERNAME',
+                    'email': form.email.data,
+                    'password': password_hash
                 }).execute()
 
-                # Call RPC function to perform transaction
                 response = app.supabase.rpc('add_user_atomic', {
                     'p_user_id': form.user_id.data,
                     'p_employee_id': form.employee_id.data,
@@ -633,7 +574,7 @@ def init_routes(app):
                     'p_seniority_date': form.seniority_date.data.isoformat() if form.seniority_date.data else None,
                     'p_department': form.department.data,
                     'p_company_code': form.company_code.data,
-                    'p_auth_user_id': auth_user_id,  # Pass the auth_user_id to the function
+                    'p_auth_user_id': auth_user_id,
                     'p_current_salary': form.current_salary.data,
                     'p_effective_date': form.effective_date.data.isoformat() if form.effective_date.data else None,
                     'p_pay_grade': form.pay_grade.data,
@@ -643,7 +584,6 @@ def init_routes(app):
                 if not response.data:
                     raise Exception("Failed to execute RPC function")
 
-                # Send acceptance link
                 email = form.email.data
                 acceptance_link = url_for('accept_user', _external=True)
                 email_body = f"""
@@ -666,29 +606,24 @@ def init_routes(app):
     def accept_user():
         auth_user_id = request.args.get('auth_user_id')
 
-        # Retrieve user information from the users table using auth user id
-        result = app.supabase.get.table('users').select(
-            '*').eq('auth_user_id', auth_user_id).execute()
+        result = app.supabase.table('users').select('*').eq('auth_user_id', auth_user_id).execute()
 
         if not result.data:
             flash("Invalid or expired invitation link.", "danger")
             return redirect(url_for('login'))
 
-        user_info = result.data[0]  # assuming the result contains only 1 entry
+        user_info = result.data[0]
 
-        # add the user to supabases authentication service
         try:
             auth_response = app.supabase.auth.sign_up({
                 "email": user_info['email'],
-                # Assuming password is hashed
                 "password": user_info['password']
             })
 
             if not auth_response or auth_response.user is None:
-                flash("Failed to create user in supabase authenication.", 'danger')
+                flash("Failed to create user in supabase authentication.", 'danger')
                 return redirect(url_for('login'))
 
-            # update the users table with the auth_user_id from supabase
             app.supabase.table('users').update({
                 'status': 'approved',
                 'updated_at': 'now()',
@@ -701,3 +636,60 @@ def init_routes(app):
         except Exception as e:
             flash(f"Error occurred: {str(e)}", "danger")
             return redirect(url_for('login'))
+
+    @app.route("/start_performance_review", methods=["POST"])
+    def start_performance_review():
+        if "user" not in session or session["user"]["role"] != "Admin":
+            return jsonify({"error": "Unauthorized"}), 403
+
+        send_notifications_to_all("Performance reviews are starting!")
+        return jsonify({"message": "Performance review process started"}), 200
+
+    @app.route("/notify_managers", methods=["POST"])
+    def notify_managers():
+        if "user" not in session or session["user"]["role"] != "Admin":
+            return jsonify({"error": "Unauthorized"}), 403
+
+        send_notifications_to_role("Manager", "Please start the performance reviews.")
+        return jsonify({"message": "Managers notified"}), 200
+
+    @app.route("/submit_review", methods=["POST"])
+    def submit_review():
+        if "user" not in session or session["user"]["role"] != "Manager":
+            return jsonify({"error": "Unauthorized"}), 403
+
+        employee_id = request.form.get("employee_id")
+        business_result = request.form.get("business_result")
+        individual_result = request.form.get("individual_result")
+        safety_result = request.form.get("safety_result")
+        bonus_payout = request.form.get("bonus_payout")
+
+        app.supabase.table("performance_reviews").insert({
+            "employee_id": employee_id,
+            "business_result": business_result,
+            "individual_result": individual_result,
+            "safety_result": safety_result,
+            "bonus_payout": bonus_payout,
+            "evaluation_date": datetime.datetime.now()
+        }).execute()
+
+        send_notification_to_employee(employee_id, "Your performance review is complete.")
+
+        return jsonify({"message": "Review submitted"}), 200
+
+    @app.route("/complete_performance_review", methods=["POST"])
+    def complete_performance_review():
+        if "user" not in session or session["user"]["role"] != "Admin":
+            return jsonify({"error": "Unauthorized"}), 403
+
+        send_notifications_to_all("Performance reviews are complete!")
+        return jsonify({"message": "Performance review process completed"}), 200
+
+    def send_notifications_to_all(message):
+        pass
+
+    def send_notifications_to_role(role, message):
+        pass
+
+    def send_notification_to_employee(employee_id, message):
+        pass
