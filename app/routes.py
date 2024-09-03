@@ -7,8 +7,7 @@ import uuid
 from werkzeug.utils import secure_filename
 from flask import render_template, request, jsonify, session, redirect, url_for, flash, send_file
 import io
-from app.forms import (PerformanceEvaluationForm, RegistrationForm, PasswordResetForm,
-                       UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm)
+from app.forms import PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm, CreateUserForm
 from app import send_email, bcrypt
 from app.utils.notifications import send_notification, send_notifications_to_all, send_notifications_to_role, send_notification_to_employee
 
@@ -584,9 +583,59 @@ def init_routes(app):
     def performance_reports():
         return render_template("performance_reports.html")
 
-    @app.route("/add_user", methods=['GET', 'POST'])
-    def add_user():
-        return render_template('add_user.html')
+    @app.route("/create_user", methods=['GET', 'POST'])
+    def create_user():
+        form = CreateUserForm()
+        if form.validate_on_submit():
+            try:
+                # Create a new user in Supabase authentication
+                auth_response = app.supabase.auth.sign_up({
+                    "email": form.email.data,
+                    "password": form.password.data
+                })
+                if not auth_response.user:
+                    raise Exception("Supabase Auth: User creation failed")
+
+                # store auth user id
+                auth_user_id = auth_response.user.id
+                # Hash user password before storing
+                password_hash = bcrypt.generate_password_hash(
+                    form.password.data).decode('utf-8')
+
+                # Debug: Print the data to be sent to the RPC
+                print(
+                    f"Creating user with auth_user_id: {auth_user_id}, username: {form.username.data}")
+
+                # Generate UUID
+                user_id = str(uuid.uuid4())
+
+                # Call the SQL RPC function to insert into the users table
+                response = app.supabase.rpc('create_user', {
+                    'p_user_id': user_id,
+                    'p_employee_id': form.employee_id.data,
+                    'p_username': form.username.data,
+                    'p_password': password_hash,
+                    'p_email': form.email.data,
+                    'p_role': form.role.data,
+                    'p_name': form.name.data,
+                    'p_status': form.status.data,
+                    'p_auth_user_id': auth_user_id
+                }).execute()
+
+                # Debug: Check if the RPC call was successful
+                print(f"RPC response: {response}")
+
+                if response.status_code != 200:
+                    raise Exception("RPC function failed to execute")
+
+                flash("User created successfully!", "success")
+                return redirect(url_for('dashboard'))
+
+            except Exception as e:
+                flash(f"Error: {str(e)}", "danger")
+                return render_template('create_user.html', form=form)
+
+        return render_template('create_user.html', form=form)
 
     @app.route('/accept_user', methods=['GET'])
     def accept_user():
@@ -689,3 +738,11 @@ def init_routes(app):
         start_performance_review()
         flash("Performance Review Workflow triggered.", "success")
         return redirect(url_for("workflows"))
+
+    @app.route("/employee_position")
+    def employee_position():
+        return render_template('employee_position.html')
+
+    @app.route("/employee_profile")
+    def employee_profile():
+        return render_template('employee_position.html')
