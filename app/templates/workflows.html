@@ -1,25 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
-    <title>Workflows</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-</head>
-<body>
+    <title>Workflows - Luxium Solutions</title>
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css" />
+  </head>
+  <body>
     <header>
-        <h1>Admin Workflows</h1>
-    </header>
-    <nav>
+      <div class="logo">
+        <img src="/static/img/LuxiumLogo.png" alt="Company Logo" />
+      </div>
+      <nav>
         <ul>
-            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-            <li><a href="{{ url_for('workflows') }}">Workflows</a></li>
+          <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li><a href="#">Calculation Configuration</a></li>
+          <li><a href="{{ url_for('workflows') }}">Workflows</a></li>
+          <li><a href="/logout" class="logout-btn">Logout</a></li>
         </ul>
-    </nav>
-    <main>
-        <button onclick="location.href='{{ url_for('trigger_workflow') }}'">Start Performance Review Workflow</button>
+      </nav>
+    </header>
+    <main class="container">
+      <h1>Admin Workflows</h1>
+      <button onclick="location.href='{{ url_for('trigger_workflow') }}'" class="button">Start Performance Review Workflow</button>
     </main>
-    <footer>
-        <p>&copy; 2024 Your Company</p>
-    </footer>
-</body>
+
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+  </body>
 </html>
