@@ -64,21 +64,20 @@ def init_routes(app):
         if "user" not in session or session["user"]["role"] != "SuperUser":
             flash("You need admin privileges to access this page.")
             return redirect(url_for("login"))
-        users = app.supabase.table("users").select(
-            "*").eq("status", "pending").execute().data
+        users = app.supabase.table("users").select("*").eq("status", "pending").execute().data
         return render_template("admin_dashboard.html", users=users)
 
-    @app.route("/approve_user/<int:user_id>")
-    def approve_user(user_id):
+
+    @app.route("/approve_user/<string:auth_user_id>")
+    def approve_user(auth_user_id):
         if "user" not in session or session["user"]["role"] != "SuperUser":
             flash("You need admin privileges to access this page.")
             return redirect(url_for("login"))
-        user = app.supabase.table("users").select(
-            "*").eq("id", user_id).execute().data[0]
-        app.supabase.table("users").update(
-            {"status": "approved"}).eq("id", user_id).execute()
-        app.supabase.auth.update_user(
-            user["auth_user_id"], {"data": {"status": "approved"}})
+    
+        user = app.supabase.table("users").select("*").eq("auth_user_id", auth_user_id).execute().data[0]
+        app.supabase.table("users").update({"status": "approved"}).eq("auth_user_id", auth_user_id).execute()
+        app.supabase.auth.update_user(user["auth_user_id"], {"data": {"status": "approved"}})
+    
         flash("User has been approved.", "success")
         return redirect(url_for("admin_dashboard"))
 
@@ -86,8 +85,7 @@ def init_routes(app):
     def register():
         form = RegistrationForm()
         if form.validate_on_submit():
-            password_hash = bcrypt.generate_password_hash(
-                form.password.data).decode('utf-8')
+            password_hash = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
             user_data = {
                 "email": form.email.data,
                 "password": password_hash,
@@ -101,8 +99,7 @@ def init_routes(app):
                     "role": form.role.data,
                     "status": "pending"
                 }).execute()
-                flash(
-                    "Registration successful. Please wait for admin approval.", "success")
+                flash("Registration successful. Please wait for admin approval.", "success")
                 return redirect(url_for("login"))
             else:
                 flash("An error occurred during registration.", "danger")
@@ -143,7 +140,8 @@ def init_routes(app):
         if form.validate_on_submit():
             new_password = form.new_password.data
             response = app.supabase.auth.api.update_user_by_email(
-                user_email, {"password": new_password})
+                user_email, {"password": new_password}
+           )
             if response.error:
                 flash(f"Error resetting password: {response.error.message}")
             else:
@@ -188,23 +186,21 @@ def init_routes(app):
 
         return render_template("myteam_employment.html", employees=employees)
 
-    @app.route("/admin/edit_user/<int:user_id>", methods=["GET", "POST"])
-    def edit_user(user_id):
+    @app.route("/admin/edit_user/<string:auth_user_id>", methods=["GET", "POST"])
+    def edit_user(auth_user_id):
         if "user" not in session or session["user"]["role"] != "SuperUser":
             flash("You need admin privileges to access this page.")
             return redirect(url_for("login"))
 
         form = RegistrationForm()
-        user = app.supabase.table("employees").select(
-            "*").eq("id", user_id).execute().data[0]
+        user = app.supabase.table("users").select("*").eq("auth_user_id", auth_user_id).execute().data[0]
 
         if request.method == "GET":
             form.name.data = user["employee_name"].strip()
             form.email.data = user["email"].strip()
             form.employee_id.data = user["employee_id"].strip()
             form.title.data = user["title"].strip()
-            form.reports_to.data = user["reports_to"].strip(
-            ) if user["reports_to"] else ""
+            form.reports_to.data = user["reports_to"].strip() if user["reports_to"] else ""
             form.hire_date.data = user["hire_date"]
             form.seniority_date.data = user["seniority_date"]
             form.department.data = user["department"].strip()
@@ -212,7 +208,7 @@ def init_routes(app):
             form.pay_grade.data = user["pay_grade"].strip()
 
         if form.validate_on_submit():
-            app.supabase.table("employees").update({
+            app.supabase.table("users").update({
                 "employee_name": form.name.data.strip(),
                 "email": form.email.data.strip(),
                 "employee_id": form.employee_id.data.strip(),
@@ -223,10 +219,11 @@ def init_routes(app):
                 "department": form.department.data.strip(),
                 "company_code": form.company_code.data.strip(),
                 "pay_grade": form.pay_grade.data.strip(),
-            }).eq("id", user_id).execute()
+            }).eq("auth_user_id", auth_user_id).execute()
             flash("User updated successfully.", "success")
             return redirect(url_for("admin_dashboard"))
-        return render_template("edit_user.html", form=form, user_id=user_id)
+        return render_template("edit_user.html", form=form, user_id=auth_user_id)
+
 
     @app.route("/electronic_services", methods=["GET", "POST"])
     def electronic_services():

@@ -62,12 +62,12 @@
               <td>{{ user.email }}</td>
               <td>
                 <a
-                  href="{{ url_for('approve_user', user_id=user.user_id) }}"
+                  href="{{ url_for('approve_user', auth_user_id=user.auth_user_id) }}"
                   class="button"
                   >Approve</a
                 >
                 <a
-                  href="{{ url_for('edit_user', user_id=user.user_id) }}"
+                  href="{{ url_for('edit_user', auth_user_id=user.auth_user_id) }}"
                   class="button"
                   >Edit</a
                 >
