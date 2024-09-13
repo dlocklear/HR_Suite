@@ -672,7 +672,7 @@ def init_routes(app):
 
     @app.route("/start_performance_review", methods=["POST"])
     def start_performance_review():
-        if "user" not in session or session["user"]["role"] != "Admin":
+        if "user" not in session or session["user"]["role"] != "SuperUser":
             return jsonify({"error": "Unauthorized"}), 403
 
         send_notifications_to_all("Performance reviews are starting!")
@@ -680,7 +680,7 @@ def init_routes(app):
 
     @app.route("/notify_managers", methods=["POST"])
     def notify_managers():
-        if "user" not in session or session["user"]["role"] != "Admin":
+        if "user" not in session or session["user"]["role"] != "SuperUser":
             return jsonify({"error": "Unauthorized"}), 403
 
         send_notifications_to_role(
@@ -714,7 +714,7 @@ def init_routes(app):
 
     @app.route("/complete_performance_review", methods=["POST"])
     def complete_performance_review():
-        if "user" not in session or session["user"]["role"] != "Admin":
+        if "user" not in session or session["user"]["role"] != "SuperUser":
             return jsonify({"error": "Unauthorized"}), 403
 
         send_notifications_to_all("Performance reviews are complete!")
@@ -722,17 +722,18 @@ def init_routes(app):
 
     @app.route("/workflows", methods=["GET"])
     def workflows():
-        if "user" not in session or session["user"]["role"] != "Admin":
+        if "user" not in session or session["user"]["role"] != "SuperUser":
             flash("Unauthorized access.", "danger")
             return redirect(url_for("dashboard"))
         return render_template("workflows.html")
 
     @app.route("/trigger_workflow", methods=["POST"])
     def trigger_workflow():
-        if "user" not in session or session["user"]["role"] != "Admin":
+        if "user" not in session or session["user"]["role"] != "SuperUser":
             return jsonify({"error": "Unauthorized"}), 403
 
-        start_performance_review()
+        # Pass app.supabase to the function
+        send_notifications_to_all(app.supabase, "Performance reviews are starting!")
         flash("Performance Review Workflow triggered.", "success")
         return redirect(url_for("workflows"))
 
