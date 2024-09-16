@@ -271,3 +271,7 @@ class CreateUserForm(FlaskForm):
     status = SelectField('Status', choices=[
                          ('pending', 'Pending'), ('approved', 'Approved')], validators=[DataRequired()])
     submit = SubmitField('Create User')
+
+class NotificationForm(FlaskForm):
+    notification_message = StringField('Notification Message', validators=[DataRequired()])
+    submit = SubmitField('Start Workflow')

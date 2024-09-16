@@ -7,7 +7,7 @@ import uuid
 from werkzeug.utils import secure_filename
 from flask import render_template, request, jsonify, session, redirect, url_for, flash, send_file
 import io
-from app.forms import PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm, CreateUserForm
+from app.forms import PerformanceEvaluationForm, RegistrationForm, PasswordResetForm, UploadForm, PersonalActionForm, LeaveRequestForm, PersonalLeaveForm, AnonymousComplaintForm, CreateUserForm, NotificationForm
 from app import send_email, bcrypt
 from app.utils.notifications import send_notification, send_notifications_to_all, send_notifications_to_role, send_notification_to_employee
 
@@ -744,3 +744,15 @@ def init_routes(app):
     @app.route("/employee_profile")
     def employee_profile():
         return render_template('employee_position.html')
+
+    @app.route("/trigger_workflow", methods=["POST"])
+    def trigger_workflow():
+        form = NotificationForm()
+        if "user" not in session or session["user"]["role"] != "SuperUser":
+            return jsonify({"error": "Unauthorized"}), 403
+
+        if form.validate_on_submit():
+            notification_message = form.notification_message.data
+            send_notifications_to_all(app.supabase, notification_message)
+            flash("Performance Review Workflow triggered.", "success")
+        return redirect(url_for("workflows"))

@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workflows - Luxium Solutions</title>
     <link rel="stylesheet" href="/static/css/base.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css" />
@@ -22,8 +23,11 @@
     </header>
     <main class="container">
       <h1>Admin Workflows</h1>
-      <form action="{{ url_for('trigger_workflow') }}" method="POST">
-        <button type="submit" class="button">Start Performance Review Workflow</button>
+      <form method="POST" action="{{ url_for('trigger_workflow') }}">
+        {{ form.hidden_tag() }}
+        <label for="notification_message">{{ form.notification_message.label }}</label>
+        {{ form.notification_message() }}
+        {{ form.submit() }}
       </form>
     </main>
 
