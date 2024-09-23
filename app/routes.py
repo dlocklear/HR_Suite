@@ -720,22 +720,18 @@ def init_routes(app):
         send_notifications_to_all("Performance reviews are complete!")
         return jsonify({"message": "Performance review process completed"}), 200
 
-    @app.route("/workflows", methods=["GET"])
+    @app.route("/workflows", methods=["GET", "POST"])
     def workflows():
         if "user" not in session or session["user"]["role"] != "SuperUser":
             flash("Unauthorized access.", "danger")
             return redirect(url_for("dashboard"))
-        return render_template("workflows.html")
+    
+        form = NotificationForm()  # Initialize your form here
+        if form.validate_on_submit():
+           # Process form submission here if needed
+           pass
 
-    @app.route("/trigger_workflow", methods=["POST"])
-    def trigger_workflow():
-        if "user" not in session or session["user"]["role"] != "SuperUser":
-            return jsonify({"error": "Unauthorized"}), 403
-
-        # Pass app.supabase to the function
-        send_notifications_to_all(app.supabase, "Performance reviews are starting!")
-        flash("Performance Review Workflow triggered.", "success")
-        return redirect(url_for("workflows"))
+        return render_template("workflows.html", form=form)
 
     @app.route("/employee_position")
     def employee_position():
